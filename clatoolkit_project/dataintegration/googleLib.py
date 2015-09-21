@@ -6,10 +6,11 @@ from oauth2client.client import OAuth2WebServerFlow
 import httplib2
 from apiclient.discovery import build
 
-CLIENT_ID = '775313004373-6nt8n91ih4g5qku95us9ceskbdlb6ure.apps.googleusercontent.com'
-CLIENT_SECRET = 'MJHbk5HdDWmqyptU_ZZtBQNP'
+CLIENT_ID = ''
+CLIENT_SECRET = ''
 SCOPE_YOUTUBE = 'https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtubepartner'
-REDIRECT_URI = 'http://127.0.0.1:8000/dataintegration/ytAuthCallback'
+#REDIRECT_URI = 'http://127.0.0.1:8000/dataintegration/ytAuthCallback'
+REDIRECT_URI = 'http://clatoolkit.beyondlms.org/dataintegration/ytAuthCallback'
 
 STR_YT_VIDEO_BASE_URL = "https://www.youtube.com/watch?v="
 STR_YT_CHANNEL_BASE_URL = "https://www.youtube.com/channel/"

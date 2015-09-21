@@ -15,16 +15,17 @@ from twython import Twython
 from dataintegration.googleLib import *
 from dataintegration.models import Video, Comment
 import os
+from clatoolkit.models import UnitOffering, UserProfile
 
 
 ##############################################
 # Extract data from YouTube via APIs
 ##############################################
-def injest_youtube(request, course_code, channelIds, http):
+def injest_youtube(request, course_code, channelIds, http, course_id):
 
     loginUserInfo = request.user
     vList = injest_youtube_like(course_code, http, loginUserInfo)
-    channelCommList = injest_youtube_comment(course_code, channelIds, http, loginUserInfo)
+    channelCommList = injest_youtube_comment(course_code, channelIds, http, loginUserInfo, course_id)
     
     ytList = []
     ytList.append(vList)
@@ -100,22 +101,24 @@ def injest_youtube_like(course_code, http, loginUserInfo):
     return vList
 
 
-def injest_youtube_comment(course_code, channelIds, http, loginUserInfo):
+def injest_youtube_comment(course_code, channelIds, http, loginUserInfo, course_id):
     
-    channelCommList = injest_youtube_commentById(course_code, channelIds, http, loginUserInfo, False)
+    channelCommList = injest_youtube_commentById(course_code, channelIds, http, loginUserInfo, False, course_id)
+    print "Channel ID comment extraction result: " + str(len(channelCommList))
 
     # Retrieve all video IDs in registered channels, and then retrieve all user's comments in the videos.
     channelIDList = channelIds.split('\r\n')
     videoIds = getAllVideoIDsInChannel(channelIDList, http)
-    videoCommList = injest_youtube_commentById(course_code, videoIds, http, loginUserInfo, True)
+    videoCommList = injest_youtube_commentById(course_code, videoIds, http, loginUserInfo, True, course_id)
     channelCommList.extend(videoCommList)
+    print "Video ID comment extraction result: " + str(len(channelCommList))
     return channelCommList
 
 
 #############################################################
 # Extract commented videos from YouTube and insert it into DB
 #############################################################
-def injest_youtube_commentById(course_code, allIds, http, loginUserInfo, isVideoIdSearch):
+def injest_youtube_commentById(course_code, allIds, http, loginUserInfo, isVideoIdSearch, course_id):
     isFirstTime = True
     nextPageToken = ""
     commList = []
@@ -124,6 +127,9 @@ def injest_youtube_commentById(course_code, allIds, http, loginUserInfo, isVideo
         ids = allIds.split(os.linesep)
     else:
         ids = allIds
+
+    #Get all users in the unit(course)
+    usersInUnit = getAllUsersInCourseById(course_id)
 
     for singleId in ids:
         #Get comments by channel ID
@@ -136,8 +142,9 @@ def injest_youtube_commentById(course_code, allIds, http, loginUserInfo, isVideo
                 nextPageToken = ""
 
             # Retrieve comments from API response
-            tempList = getCommentsFromResponse(ret, course_code, 
-                loginUserInfo.username, loginUserInfo.userprofile.google_account_name)
+            #tempList = getCommentsFromResponse(ret, course_code, 
+            #    loginUserInfo.username, loginUserInfo.userprofile.google_account_name, course_id)
+            tempList = getCommentsFromResponse(ret, course_code, loginUserInfo.username, usersInUnit)
             commList.extend(tempList)
             isFirstTime = False
 
@@ -145,15 +152,32 @@ def injest_youtube_commentById(course_code, allIds, http, loginUserInfo, isVideo
         isFirstTime = True
         nextPageToken = ""
 
-    usr_dict = {'google_account_name': loginUserInfo.userprofile.google_account_name }
-    usr_dict['email'] = loginUserInfo.email
+    #usr_dict = {'google_account_name': loginUserInfo.userprofile.google_account_name }
+    #usr_dict['email'] = loginUserInfo.email
     for comment in commList:
-        comment_from_name = loginUserInfo.username
+        #usr_dict['email'] = loginUserInfo.email
+        #comment_from_name = loginUserInfo.username
+        userInfo = getUserDetailsDict(comment, usersInUnit)
+        usr_dict = {'googleAcName': userInfo['googleAcName'], 'email': userInfo['email']}
+        """
         insert_comment(usr_dict, comment.parentId, comment.commId, 
                         comment.text, loginUserInfo.username, comment_from_name, 
                         comment.updatedAt, course_code, STR_PLATFORM_NAME_YOUTUBE, STR_PLATFORM_URL_YOUTUBE, comment.commId, "")
-
+        """
+        insert_comment(usr_dict, comment.parentId, comment.commId, 
+                        comment.text, userInfo['username'], userInfo['username'], 
+                        comment.updatedAt, course_code, STR_PLATFORM_NAME_YOUTUBE, STR_PLATFORM_URL_YOUTUBE, comment.commId, "")
     return commList
+
+
+def getUserDetailsDict(comment, usersInUnit):
+    userInfo = {}
+    for user in usersInUnit:
+        if user.userprofile is not None and comment.authorDispName == user.userprofile.google_account_name:
+            userInfo = {'googleAcName': user.userprofile.google_account_name }
+            userInfo['email'] = user.email
+            userInfo['username'] = user.username
+    return userInfo
 
 
 ##############################################
@@ -268,7 +292,8 @@ def extractCommentsById(singleId, nextPageToken, isVideoIdSearch, http):
 #############################################################
 # Retrieve comments from YouTube API response
 #############################################################
-def getCommentsFromResponse(apiResponse, course_code, userName, googleAcName):
+#def getCommentsFromResponse(apiResponse, course_code, userName, googleAcName, course_id):
+def getCommentsFromResponse(apiResponse, course_code, userName, usersInUnit):
     commList = []
 
     #When an error occurs
@@ -280,13 +305,14 @@ def getCommentsFromResponse(apiResponse, course_code, userName, googleAcName):
         #Check if the comment is already in DB
         records = LearningRecord.objects.filter(
             platform = STR_PLATFORM_NAME_YOUTUBE, course_code = course_code, 
-            platformid = item['id'], username = userName, verb = "commented")
+            platformid = item['id'], verb = "commented")
         if(len(records) > 0):
             continue
 
         author = item['snippet']['topLevelComment']['snippet']['authorDisplayName']
         # Check if the author of the comment is the same as the login user's google account name.
-        if author == googleAcName:
+        #if author == googleAcName:
+        if matchCommentAuthorName(author, usersInUnit):
             comm = Comment()
             comm.commId = item['id']
             # Top level comment's parent ID is the same as ID
@@ -319,14 +345,15 @@ def getCommentsFromResponse(apiResponse, course_code, userName, googleAcName):
                 #Check if the comment is already in DB
                 records = LearningRecord.objects.filter(
                     platform = STR_PLATFORM_NAME_YOUTUBE, course_code = course_code, 
-                    platformid = reply['id'], username = userName, verb = "commented")
+                    platformid = reply['id'], verb = "commented")
                 if(len(records) > 0):
                     continue
 
                 author = reply['snippet']['authorDisplayName']
 
                 # Check if the author of the comment is the same as the login user's google account name.
-                if author == googleAcName:
+                #if author == googleAcName:
+                if matchCommentAuthorName(author, usersInUnit):
                     replyComm = Comment()
                     replyComm.isReply = True
                     replyComm.commId = reply['id']
@@ -350,6 +377,19 @@ def getCommentsFromResponse(apiResponse, course_code, userName, googleAcName):
                     commList.append(replyComm)
 
     return commList
+
+
+def getAllUsersInCourseById(course_id):
+    unit = UnitOffering.objects.filter(id = course_id).get()
+    users = unit.users.all()
+    return users
+
+def matchCommentAuthorName(author, usersInUnit):
+    for user in usersInUnit:
+        if user.userprofile is not None and author == user.userprofile.google_account_name:
+            return True
+
+    return False
 
 
 def injest_twitter(sent_hashtag, course_code):
@@ -588,7 +628,7 @@ def insert_comment(usr_dict, post_id, comment_id, comment_message, comment_from_
     #lrs = LearningRecord(xapi=stm_json, course_code=course_code, verb='commented', platform=platform, username=comment_from_uid)
     lrs = LearningRecord(xapi=stm_json, course_code=course_code, verb='commented', platform=platform, username=comment_from_uid, platformid=platformID, platformparentid=platformParentID)
     lrs.save()
-
+    
 def insert_share(usr_dict, post_id, share_id, comment_message, comment_from_uid, comment_from_name, comment_created_time, course_code, platform, platform_url, tags=[]):
     stm = socialmediabuilder.socialmedia_builder(verb='shared', platform=platform, account_name=comment_from_uid, account_homepage=platform_url, object_type='Note', object_id=share_id, message=comment_message, parent_id=post_id, parent_object_type='Note', timestamp=comment_created_time, account_email=usr_dict['email'], user_name=comment_from_name, course_code=course_code, tags=tags )
     jsn = ast.literal_eval(stm.to_json())

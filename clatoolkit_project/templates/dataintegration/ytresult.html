@@ -20,18 +20,6 @@
 
 	<body>	
 		<h2>YouTube data has been refreshed.</h2>
-<!--
-		<div> totalResults: {{ yt.totalResults }}, resultsPerPage: {{ yt.resultsPerPage }} </div>
-		<br>
-
-		<h4>Video URL: </h4>
-		<div>{{ vurl }}</div>
-		<h4>Video Title: </h4>
-		<div>{{ vtitle }}</div>		
-		<h4>Next Page Token: </h4>
-		<div>{{ yt.nextPageToken }}</div>
--->
-
 		<h4>Newly collected "Like" videos: ({{ vNum }} videos)</h4>
 		<table class="result">
 			<tr>
@@ -65,27 +53,6 @@
 			</tr>
 			{% endfor %}
 		</table>
-
-<!--				
-		{% for yt in vList %}
-		<div>{{ yt.videoTitle }} ({{ yt.videoUrl }})</div>
-		{% endfor %}
-
-		<h4>Video Title (using class): </h4>
-		{% for yt in vList %}
-		<div>{{ yt.videoTitle }}</div>
-		{% endfor %}
-
-		<hr>
-
-		<h4>Comments: ({{ commNum }} comments) </h4>
-		{% for comm in commList %}
-		<div>{{ comm.text }} {% if comm.isReply %} (Reply) {% endif %} ({{ comm.videoUrl }}{{ comm.channelUrl }})</div>
-		{% endfor %}
-
-		<div>Comment API response</div>
-		{{ jsonObj }}
--->
 	</body>
 </html>
 

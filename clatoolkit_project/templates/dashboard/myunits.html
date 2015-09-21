@@ -23,7 +23,7 @@ Twitter Hashtags: {{unit.twitter_hashtags}} [<a href="/dashboard/?course_code={{
 <br/>
 Facebook Groups: {{unit.facebook_groups}} [<a href="/dashboard/?course_code={{unit.code}}&platform=Facebook">Activity</a> | <a href="/dashboard/ca_dashboard?course_code={{unit.code}}&platform=Facebook">Content Analysis</a> | <a href="/dashboard/sna_dashboard?course_code={{unit.code}}&platform=Facebook">Social Network Analysis</a>] | <a href="/dataintegration/login/{{unit.facebook_groups}}">Refresh Imported Data</a>
 <br/>
-YouTube Channels: {{unit.youtube_channelIds}} [<a href="/dashboard/?course_code={{unit.code}}&platform=YouTube">Activity</a> | <a href="/dashboard/ca_dashboard?course_code={{unit.code}}&platform=YouTube">Content Analysis</a> | <a href="/dashboard/sna_dashboard?course_code={{unit.code}}&platform=YouTube">Social Network Analysis</a>] | <a href="/dataintegration/refreshyoutube/?course_code={{unit.code}}&channelIds={{unit.youtube_channelIds|urlencode}}">Refresh Imported Data</a>
+YouTube Channels: {{unit.youtube_channelIds}} [<a href="/dashboard/?course_code={{unit.code}}&platform=YouTube">Activity</a> | <a href="/dashboard/ca_dashboard?course_code={{unit.code}}&platform=YouTube">Content Analysis</a> | <a href="/dashboard/sna_dashboard?course_code={{unit.code}}&platform=YouTube">Social Network Analysis</a>] | <a href="/dataintegration/refreshyoutube/?course_code={{unit.code}}&channelIds={{unit.youtube_channelIds|urlencode}}&course_id={{unit.id}}">Refresh Imported Data</a>
 </p>
 {% else %}
 <p>
