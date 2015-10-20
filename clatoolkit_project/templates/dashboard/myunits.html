@@ -26,6 +26,8 @@ Facebook Groups: {{unit.facebook_groups}} [<a href="/dashboard/?course_code={{un
 {% if unit.code == 'IFN614' %}
 <br/>
 Forums: {{unit.forum_urls}} [<a href="/dashboard/?course_code={{unit.code}}&platform=Forum">Activity</a> | <a href="/dashboard/ca_dashboard?course_code={{unit.code}}&platform=Forum">Content Analysis</a> | <a href="/dashboard/sna_dashboard?course_code={{unit.code}}&platform=Forum">Social Network Analysis</a>] | <a href="/dataintegration/refreshforum/?course_code={{unit.code}}&forumurl={{unit.forum_urls|urlencode}}">Refresh Imported Data</a>
+<br/>
+    <a href="/dashboard/myclassifications?course_code={{unit.code}}&platform=Forum">View Community of Inquiry Classifications</a> |
 {% endif %}
 
 <br/>
@@ -41,7 +43,7 @@ YouTube Channels: {{unit.youtube_channelIds}} [<a href="/dashboard/?course_code=
 <p>
 <a href="/dashboard/mydashboard?course_code={{unit.code}}&platform=all">Go to My Social Media Dashboard</a>
 <br/>
-<a href="/dashboard/myclassifications?course_code={{unit.code}}&platform=Forum">View Community of Inquiry Classifications</a>
+<a href="/dashboard/myclassifications?course_code={{unit.code}}&platform=Forum">View Community of Inquiry Classifications</a> | <a href="/clatoolkit/classify?course_code={{unit.code}}&platform=Forum">Classify Data</a>/<a href="/clatoolkit/train?course_code={{unit.code}}&platform=Forum">Train on Data</a>
 </p>
 {% endif %}
 

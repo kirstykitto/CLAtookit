@@ -276,3 +276,25 @@ class TOPICMODELView(DefaultsMixin, APIView):
         result = json.loads(get_LDAVis_JSON(platform, num_topics, course_code, start_date=start_date, end_date=end_date))
         response = Response(result, status=status.HTTP_200_OK)
         return response
+
+class MLCLASSIFY(DefaultsMixin, APIView):
+
+    def get(self, request, *args, **kw):
+
+        course_code = request.GET.get('course_code', None)
+        platform = request.GET.get('platform', None)
+
+        result = classify(course_code,platform)
+        response = Response(result, status=status.HTTP_200_OK)
+        return response
+
+class MLTRAIN(DefaultsMixin, APIView):
+
+    def get(self, request, *args, **kw):
+
+        course_code = request.GET.get('course_code', None)
+        platform = request.GET.get('platform', None)
+
+        result = train(course_code,platform)
+        response = Response(result, status=status.HTTP_200_OK)
+        return response
