@@ -1,0 +1,14 @@
+{
+
+  "server": "localhost:5432",
+
+  "db_name": "new_db",
+
+
+  "db_credentials": {
+    "username": "",
+    "password": ""
+  },
+
+  "model_file": "./NaiveBayes_t1.model"
+}

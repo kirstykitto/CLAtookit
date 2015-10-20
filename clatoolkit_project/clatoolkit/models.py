@@ -85,6 +85,7 @@ class UserClassification(models.Model):
     isclassificationcorrect = models.BooleanField(blank=False)
     userreclassification = models.CharField(max_length=1000, blank=False)
     feedback = models.TextField(blank=True)
+    trained = models.BooleanField(blank=False, default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class UnitOffering(models.Model):

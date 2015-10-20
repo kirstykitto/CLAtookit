@@ -13,6 +13,27 @@ from django.db.models import Q
 from django.utils.html import strip_tags
 import networkx as nx
 import re
+import subprocess
+
+
+def classify(course_code, platform):
+    #Calls JAR to extract and classify messages
+    #$ java -cp /dataintegration/MLWrapper/CLAToolKit_JavaMLWrapper-0.1.jar load.from_clatk ./config.json [course_code] [platform]
+    try:
+        os.popen(['java -cp CLAToolKit_JavaMLWrapper-0.1.jar load.from_clatk config.json ' + course_code + ' ' + platform]);
+        return True
+    except Exception, e:
+        return e
+
+
+def train(course_code, platform):
+    #Call JAR to Train of UserReclassifications
+    #$ java -cp CLAToolKit_JavaMLWrapper-0.1.jar load.train_onUserClassifications ./config.json [course_code] [platform]
+    try:
+        os.popen('java -cp CLAToolKit_JavaMLWrapper-0.1.jar load.train_onUserClassifications config.json ' + course_code + ' ' + platform);
+        return True
+    except Exception, e:
+        return e
 
 def get_uid_fromsmid(username, platform):
     userprofile = None

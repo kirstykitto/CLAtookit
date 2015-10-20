@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.http import HttpResponse
 from django.db import connection
 from utils import *
-from clatoolkit.models import UnitOffering, DashboardReflection, LearningRecord, Classification
+from clatoolkit.models import UnitOffering, DashboardReflection, LearningRecord, Classification, UserClassification
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from functools import wraps
@@ -381,7 +381,9 @@ def myclassifications(request):
     course_code = request.GET.get('course_code')
     platform = request.GET.get('platform')
 
-    classifications = Classification.objects.filter(xapistatement__username=username)
+    inner_q = UserClassification.objects.all().values_list('classification_id')
+    classifications = Classification.objects.filter(xapistatement__username=username).exclude(id__in = inner_q)
+
     context_dict = {'course_code':course_code, 'platform':platform, 'title': "Community of Inquiry Classification", 'username':username, 'uid':uid, 'classifications': classifications }
     return render_to_response('dashboard/myclassifications.html', context_dict, context)
 
