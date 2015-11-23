@@ -4,13 +4,15 @@ from django.template import RequestContext
 from django.http import HttpResponse
 from django.db import connection
 from utils import *
-from clatoolkit.models import UnitOffering, DashboardReflection, LearningRecord, Classification, UserClassification
+from clatoolkit.models import UnitOffering, DashboardReflection, LearningRecord, Classification, UserClassification, GroupMap
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from functools import wraps
 from django.db.models import Q
 import datetime
 from django.db.models import Count
+
+import random
 
 #staceysarasvati
 def check_access(required_roles=None):
@@ -385,16 +387,27 @@ def myclassifications(request):
 
     course_code = None
     platform = None
-    username = request.user.username
-    uid = request.user.id
+
+    user = request.user
+    username = user.username
+    uid = user.id
 
     course_code = request.GET.get('course_code')
     platform = request.GET.get('platform')
 
-    inner_q = UserClassification.objects.all().values_list('classification_id')
-    classifications = Classification.objects.filter(xapistatement__username=username, classifier='NaiveBayes_t1.model').exclude(id__in = inner_q)
+    user_profile = UserProfile.objects.filter(user=user)
 
-    context_dict = {'course_code':course_code, 'platform':platform, 'title': "Community of Inquiry Classification", 'username':username, 'uid':uid, 'classifications': classifications }
+    group_id_seed = GroupMap.objects.filter(userId=user_profile, course_code=course_code).values_list('groupId')
+
+    inner_q = UserClassification.objects.filter(username=username).values_list('classification_id')
+    #Need to add unique identifier to models to distinguish between classes
+    #xapistatement__username=username,
+    classifications_list = list(Classification.objects.filter(classifier='NaiveBayes_t1.model').exclude(id__in = inner_q))
+
+    random.seed(group_id_seed)
+    random.shuffle(classifications_list)
+
+    context_dict = {'course_code':course_code, 'platform':platform, 'title': "Community of Inquiry Classification", 'username':username, 'uid':uid, 'classifications': classifications_list }
     return render_to_response('dashboard/myclassifications.html', context_dict, context)
 
 def topicmodeling(request):

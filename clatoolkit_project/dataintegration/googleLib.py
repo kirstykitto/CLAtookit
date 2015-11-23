@@ -7,7 +7,7 @@ import httplib2
 from apiclient.discovery import build
 
 CLIENT_ID = ''
-CLIENT_SECRET = '''
+CLIENT_SECRET = ''
 SCOPE_YOUTUBE = 'https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtubepartner'
 REDIRECT_URI = 'http://127.0.0.1:8000/dataintegration/ytAuthCallback'
 

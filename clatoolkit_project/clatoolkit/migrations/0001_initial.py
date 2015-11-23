@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations
+from django.db import migrations, models
 import django_pgjson.fields
 from django.conf import settings
 
@@ -61,6 +61,14 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='GroupMap',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('course_code', models.CharField(max_length=5000)),
+                ('groupId', models.CharField(max_length=5000)),
+            ],
+        ),
+        migrations.CreateModel(
             name='LearningRecord',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
@@ -106,6 +114,7 @@ class Migration(migrations.Migration):
                 ('google_groups', models.TextField(blank=True)),
                 ('facebook_groups', models.TextField(blank=True)),
                 ('forum_urls', models.TextField(blank=True)),
+                ('youtube_channelIds', models.TextField(blank=True)),
                 ('ll_endpoint', models.CharField(max_length=60, blank=True)),
                 ('ll_username', models.CharField(max_length=60, blank=True)),
                 ('ll_password', models.CharField(max_length=60, blank=True)),
@@ -134,8 +143,14 @@ class Migration(migrations.Migration):
                 ('fb_id', models.CharField(max_length=30, blank=True)),
                 ('twitter_id', models.CharField(max_length=30, blank=True)),
                 ('forum_id', models.CharField(max_length=500, blank=True)),
+                ('google_account_name', models.CharField(max_length=255, blank=True)),
                 ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
             ],
+        ),
+        migrations.AddField(
+            model_name='groupmap',
+            name='userId',
+            field=models.ForeignKey(to='clatoolkit.UserProfile'),
         ),
         migrations.AddField(
             model_name='classification',
