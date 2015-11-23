@@ -2,7 +2,7 @@
 
   "server": "localhost:5432",
 
-  "db_name": "",
+  "db_name": "new_db",
 
 
   "db_credentials": {

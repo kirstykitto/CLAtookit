@@ -34,12 +34,12 @@ YouTube Channels: {% for channel in unit.youtube_channelIds_as_list %} <a href="
 <br/>
 Forums: {{unit.forum_urls}} [<a href="/dashboard/?course_code={{unit.code}}&platform=Forum">Activity</a> | <a href="/dashboard/ca_dashboard?course_code={{unit.code}}&platform=Forum">Content Analysis</a> | <a href="/dashboard/sna_dashboard?course_code={{unit.code}}&platform=Forum">Social Network Analysis</a>] | <a href="/dataintegration/refreshforum/?course_code={{unit.code}}&forumurl={{unit.forum_urls|urlencode}}">Refresh Imported Data</a>
 {% endif %}
-{% if unit.enable_coi_classifier %}
+
 <hr/>
 <a href="/dashboard/myclassifications?course_code={{unit.code}}&platform=Forum">View Your Community of Inquiry Classifications</a>
 <br/>
 Community of Inquiry Classification Admin: <a href="/clatoolkit/classify?course_code={{unit.code}}&platform=Forum">Classify All Student Data</a>/<a href="/clatoolkit/train?course_code={{unit.code}}&platform=Forum">Train on new Student Data</a>
-{% endif %}
+
 <br/>
 <hr/>
 CLA Toolkit Unit Registration Link for Students: http://clatoolkit.beyondlms.org/clatoolkit/register?course_code={{unit.code}}
@@ -52,12 +52,17 @@ CLA Toolkit Unit Registration Link for Students: http://clatoolkit.beyondlms.org
 {% else %}
 <p>
 <a href="/dashboard/mydashboard?course_code={{unit.code}}&platform=all">Go to My Social Media Dashboard</a>
-{% if unit.enable_coi_classifier %}
+
 <br/>
 <a href="/dashboard/myclassifications?course_code={{unit.code}}&platform=Forum">View Community of Inquiry Classifications</a>
-{% endif %}
+
 </p>
 {% endif %}
+
+    <p>
+    <b>Group Development and Testing Zone:</b><br/>
+    <a href="/clatoolkit/groupify?course_code={{unit.code}}">Group this unit</a>
+    </p>
 
 {% endif %}
             </div>

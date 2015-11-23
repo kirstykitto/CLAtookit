@@ -620,10 +620,10 @@ def injest_twitter(sent_hashtag, course_code):
     #print "sent_hashtag:", sent_hashtag
 
     # Setup Twitter API Keys
-    app_key = ""
-    app_secret = ""
-    oauth_token = ""
-    oauth_token_secret = ""
+    app_key = "barKrgroD3LcyHRwehvaiv1Zu"
+    app_secret = "v6awGTCTP6wNJNhMPzmUzuIi1bAfNuoFOuPq1LXoCNjyqOIUki"
+    oauth_token = "1851621-4eTSnqZehoeVBWqUxGERiPKjnTsVEFaJ77MnTWKRfo"
+    oauth_token_secret = "4ZoEKJ9hnbviCuFtfGq2hBdCsfuX6eyqvvkbFGEeytE0U"
 
     twitter = Twython(app_key, app_secret, oauth_token, oauth_token_secret)
 

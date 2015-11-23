@@ -98,12 +98,15 @@ class UnitOffering(models.Model):
     description = models.TextField(blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     users = models.ManyToManyField(User, related_name='usersinunitoffering')
+    # determines whether new enrolments should be added to a group
+    #assign_groups = models.BooleanField(blank=False, default=False)
+
     # determines whether unit should be displayed on Register form and on dashboard
     enabled = models.BooleanField(blank=False, default=False)
     # determines whether unit should be displayed on EventRegistration Form
     event = models.BooleanField(blank=False, default=False)
     # determines whether COI Classifier link should be diplayed for staff and student in a unit
-    enable_coi_classifier = models.BooleanField(blank=False, default=False)
+    #enable_coi_classifier = models.BooleanField(blank=False, default=False)
 
     # Twitter Unit Integration Requirements
     twitter_hashtags = models.TextField(blank=False)
@@ -173,3 +176,8 @@ class DashboardReflection(models.Model):
 
     def __unicode__(self):
         return self.id + ": " + self.username
+
+class GroupMap(models.Model):
+    userId = models.ForeignKey(UserProfile)
+    course_code = models.CharField(max_length=5000, blank=False)
+    groupId = models.IntegerField(max_length=5000, blank=False)

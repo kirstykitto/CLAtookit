@@ -12,7 +12,7 @@ from clatoolkit.forms import UserForm, UserProfileForm
 
 from django.template import RequestContext
 
-from clatoolkit.models import UnitOffering, DashboardReflection, LearningRecord, SocialRelationship, Classification, UserClassification, AccessLog
+from clatoolkit.models import GroupMap, UnitOffering, DashboardReflection, LearningRecord, SocialRelationship, Classification, UserClassification, AccessLog
 
 from rest_framework import authentication, permissions, viewsets, filters
 from .serializers import LearningRecordSerializer, SocialRelationshipSerializer, ClassificationSerializer, UserClassificationSerializer
@@ -23,7 +23,10 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from dashboard.utils import *
+from dataintegration.groupbuilder import *
 import json
+
+from django.db.models import Max
 
 # from fb_data.models import
 
@@ -91,13 +94,41 @@ def register(request):
             # Once hashed, we can update the user object.
             user.set_password(user.password)
 
+            # Stores the users' group assignments for after UserProfile is initialised
+            # (Table GroupMap requires an associated UserProfile as a foreign key)
+            grpmapentries = []
+
+            # max_grp_size set to 5 for development. Easily made customisable by setting this value when creating a unit
+            # which can then be pulled from the associated UnitOffering instance in the DB.
+            max_grp_size = 5
+
             # Assign units to user
             selectedunit = request.GET.get('selectedunit', None)
             if selectedunit is not None:
                 user.usersinunitoffering.add(selectedunit)
+
             else:
                 for unit in user_form.cleaned_data['units']:
                     user.usersinunitoffering.add(unit)
+
+                    # Get the current highest group number (to assign user to unit group)
+                    # Default is 1 (i.e. no other groups have been created)
+                    highest_grp_num = 1
+
+                    # Find the most current group ID
+                    highest_grp_dict = GroupMap.objects.filter(course_code=unit.code).aggregate(Max('groupId'))
+                    if highest_grp_dict['groupId__max'] is not None:
+                        highest_grp_num = int(highest_grp_dict['groupId__max'])
+
+                    # Now we figure out if there's space in this group (constrained by var max_grp_size)
+                    members_in_hgrp = GroupMap.objects.filter(groupId=highest_grp_num).count()
+                    #print members_dict
+                    #print "Members in highest group #" + str(highest_grp_num) + ": " + str(members_in_hgrp)
+
+                    if members_in_hgrp < max_grp_size:
+                        grpmapentries.append((unit.code, highest_grp_num))
+                    else:
+                        grpmapentries.append((unit.code, highest_grp_num+1))
 
             user.save()
 
@@ -110,6 +141,11 @@ def register(request):
 
             # Now we save the UserProfile model instance.
             profile.save()
+
+            #Once the UserProfile has been saved, we can assign user to unit groups
+            for (unit,grp_num) in grpmapentries:
+                grpmap = GroupMap(userId=profile, course_code=unit, groupId=grp_num)
+                grpmap.save()
 
             # Update our variable to tell the template registration was successful.
             registered = True
@@ -375,3 +411,12 @@ class EXTERNALLINKLOGView(DefaultsMixin, APIView):
         entry.save()
         response = Response("Logged External Link Click", status=status.HTTP_200_OK)
         return response
+
+class GROUPIFY(DefaultsMixin, APIView):
+
+    def get(self, request, *args, **kw):
+
+        course_code = request.GET.get('course_code', None)
+        assign_groups_class(course_code)
+
+        return redirect('/dashboard/myunits/', request)
