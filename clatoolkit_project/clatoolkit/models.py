@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django_pgjson.fields import JsonField
+import os
 
 class UserProfile(models.Model):
     '''
@@ -43,6 +44,9 @@ class UserProfile(models.Model):
 
     #blog userName
     blog_id = models.CharField(max_length=255, blank=True)
+    
+    #GitHub user account
+    github_account_name = models.CharField(max_length=255, blank=True)
 
 class OfflinePlatformAuthToken(models.Model):
     user = models.ForeignKey(User)
@@ -143,6 +147,9 @@ class UnitOffering(models.Model):
     # Blog Members (for blogrss plugin)
     blogmember_urls = models.TextField(blank=True)
 
+    # GitHub Repository URLs
+    github_urls = models.TextField(blank=True)
+
     # LRS Integration - to send users data to unit LRS
     ll_endpoint = models.CharField(max_length=60, blank=True)
     ll_username = models.CharField(max_length=60, blank=True)
@@ -184,6 +191,12 @@ class UnitOffering(models.Model):
     def blogmember_urls_as_list(self):
         if self.blogmember_urls:
             return self.blogmember_urls.split(',')
+        else:
+            return []
+
+    def github_urls_as_list(self):
+        if self.github_urls:
+            return self.github_urls.split(os.linesep)
         else:
             return []
 

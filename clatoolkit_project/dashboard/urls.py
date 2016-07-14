@@ -12,5 +12,7 @@ urlpatterns = patterns('',
     url(r'^student_dashboard/$', views.studentdashboard, name='studentdashboard'),
     url(r'^mydashboard/$', views.mydashboard, name='mydashboard'),
     url(r'^pyldavis/$', views.pyldavis, name='pyldavis'),
-    url(r'^myclassifications/$', views.myclassifications, name='myclassifications')
+    url(r'^myclassifications/$', views.myclassifications, name='myclassifications'),
+    url(r'^ccadashboard/$', views.ccadashboard, name='ccadashboard'),
+    url(r'^ccadata/$', views.ccadata, name='ccadata'),
 )

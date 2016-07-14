@@ -26,6 +26,28 @@ from dataintegration.googleLib import *
 from oauth2client.client import OAuth2WebServerFlow
 from django.contrib.sites.shortcuts import get_current_site
 
+import os
+
+
+##############################################
+# GitHub Data Extraction
+##############################################
+def refreshgithub(request):
+
+    html_response = HttpResponse()
+    course_code = request.GET.get('course_code')
+    repoUrls = request.GET.get('urls')
+
+    github_plugin = settings.DATAINTEGRATION_PLUGINS['GitHub']
+    ghDataList = github_plugin.perform_import(repoUrls, course_code)
+    post_smimport(course_code, "Github")
+
+    #html_response.write('GitHub Refreshed.')
+    #return html_response
+
+    return render(request, 'dataintegration/githubresult.html')
+
+
 ##############################################
 # Data Extraction for YouTube
 ##############################################

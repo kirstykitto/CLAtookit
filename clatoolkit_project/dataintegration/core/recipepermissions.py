@@ -22,6 +22,8 @@ def get_userdetails(screen_name, platform):
     try:
         if platform=='YouTube':
             platform_param_name = "google_account_name__iexact"
+        elif platform == 'GitHub':
+            platform_param_name = "github_account_name__iexact"
         else:
             platform_param_name = "%s_id__iexact" % (platform.lower())
         kwargs = {platform_param_name:screen_name}
@@ -48,6 +50,8 @@ def username_exists(screen_name, course_code, platform):
     platform_param_name = None
     if platform=='YouTube':
         platform_param_name = "google_account_name__iexact"
+    elif platform == 'GitHub':
+        platform_param_name = "github_account_name__iexact"
     else:
         platform_param_name = "%s_id__iexact" % (platform.lower())    
     kwargs = {platform_param_name:screen_name}
@@ -72,6 +76,8 @@ def get_uid_fromsmid(username, platform):
         userprofile = UserProfile.objects.filter(forum_id__iexact=username)
     elif platform == "YouTube":
             userprofile = UserProfile.objects.filter(google_account_name__iexact=username)
+    elif platform == "GitHub":
+        userprofile = UserProfile.objects.filter(github_account_name__iexact=username)
     else:
         #platform must be = all
         userprofile = UserProfile.objects.filter(Q(twitter_id__iexact=username) | Q(fb_id__iexact=username) | Q(forum_id__iexact=username) | Q(google_account_name__iexact=username))
@@ -90,6 +96,8 @@ def get_username_fromsmid(sm_id, platform):
         userprofile = UserProfile.objects.filter(forum_id__iexact=sm_id)
     elif platform == "YouTube":
             userprofile = UserProfile.objects.filter(google_account_name__iexact=sm_id)
+    elif platform == "GitHub":
+        userprofile = UserProfile.objects.filter(github_account_name__iexact=sm_id)
     else:
         #platform must be = all
         userprofile = UserProfile.objects.filter(Q(twitter_id__iexact=sm_id) | Q(fb_id__iexact=sm_id) | Q(forum_id__iexact=sm_id) | Q(google_account_name__iexact=sm_id))
@@ -114,7 +122,8 @@ def get_smids_fromuid(uid):
     fb_id = user.userprofile.fb_id
     forum_id = user.userprofile.forum_id
     google_id = user.userprofile.google_account_name
-    return twitter_id, fb_id, forum_id, google_id
+    github_id = user.userprofile.github_account_name
+    return twitter_id, fb_id, forum_id, google_id, github_id
 
 def get_smids_fromusername(username):
     user = User.objects.get(username=username)
@@ -122,4 +131,5 @@ def get_smids_fromusername(username):
     fb_id = user.userprofile.fb_id
     forum_id = user.userprofile.forum_id
     google_id = user.userprofile.google_account_name
-    return twitter_id, fb_id, forum_id, google_id
+    github_id = user.userprofile.github_account_name
+    return twitter_id, fb_id, forum_id, google_id, github_id

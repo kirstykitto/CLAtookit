@@ -38,6 +38,8 @@ Forums: {{unit.forum_urls}} [<a href="/dashboard/?course_code={{unit.code}}&plat
 <br/>
 Diigo Tags: {% for tag in unit.diigo_tags_as_list %} <a href="https://www.diigo.com/tag/{{tag}}" target="_blank">{{tag}}</a>  {% endfor %}  [<a href="/dashboard/?course_code={{unit.code}}&platform=Diigo">Activity</a> | <a href="/dashboard/ca_dashboard?course_code={{unit.code}}&platform=Diigo">Content Analysis</a> | <a href="/dashboard/sna_dashboard?course_code={{unit.code}}&platform=Diigo">Social Network Analysis</a>] | <a href="/dataintegration/refreshdiigo/?course_code={{unit.code}}&tags={{unit.diigo_tags|urlencode}}">Refresh Imported Data</a>
 {% endif %}
+<br/>
+GitHub URLs: {% for url in unit.github_urls_as_list %} <a href="{{url}}" target="_blank">{{url}}</a>  {% endfor %} [<a href="/dashboard/?course_code={{unit.code}}&platform=GitHub">Activity</a> | <a href="/dashboard/ca_dashboard?course_code={{unit.code}}&platform=GitHub">Content Analysis</a> | <a href="/dashboard/sna_dashboard?course_code={{unit.code}}&platform=GitHub">Social Network Analysis</a>] | <a href="/dataintegration/refreshgithub/?course_code={{unit.code}}&course_id={{unit.id}}&urls={{unit.github_urls|urlencode}}&platform=GitHub">Refresh Imported Data</a>
 {% if unit.enable_coi_classifier %}
 <hr/>
 {% if unit.code == 'IFN614' %}

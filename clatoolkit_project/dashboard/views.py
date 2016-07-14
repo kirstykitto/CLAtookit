@@ -12,6 +12,9 @@ from django.db.models import Q
 import datetime
 from django.db.models import Count
 import random
+from rest_framework import status
+from django.http import JsonResponse
+
 
 def check_access(required_roles=None):
     def decorator(view):
@@ -186,8 +189,14 @@ def snadashboard(request):
     comments_timeline = get_timeseries('commented', platform, course_code)
 
     sna_json = sna_buildjson(platform, course_code, relationshipstoinclude="'mentioned','liked','shared','commented'")
-
-    context_dict = {'show_dashboardnav':show_dashboardnav,'course_code':course_code, 'platform':platform, 'title': title, 'sna_json': sna_json, 'posts_timeline': posts_timeline, 'shares_timeline': shares_timeline, 'likes_timeline': likes_timeline, 'comments_timeline': comments_timeline }
+    #sna_neighbours = getNeighbours(sna_json)
+    centrality = getCentrality(sna_json)
+    context_dict = {
+        'show_dashboardnav':show_dashboardnav,'course_code':course_code, 'platform':platform, 
+        'title': title, 'sna_json': sna_json, 'posts_timeline': posts_timeline, 
+        'shares_timeline': shares_timeline, 'likes_timeline': likes_timeline, 'comments_timeline': comments_timeline,
+        'centrality': centrality
+    }
 
     return render_to_response('dashboard/snadashboard.html', context_dict, context)
 
@@ -388,14 +397,26 @@ def mydashboard(request):
     #topcontenttable = get_top_content_table(platform, course_code, username=username)
 
     sna_json = sna_buildjson(platform, course_code, username=username, relationshipstoinclude="'mentioned','liked','shared','commented'")
-
+    centrality = getCentrality(sna_json)
     tags = get_wordcloud(platform, course_code, username=username)
 
     sentiments = getClassifiedCounts(platform, course_code, username=username, classifier="VaderSentiment")
     coi = getClassifiedCounts(platform, course_code, username=username, classifier="NaiveBayes_t1.model")
 
     reflections = DashboardReflection.objects.filter(username=username)
-    context_dict = {'show_allplatforms_widgets': show_allplatforms_widgets, 'forum_timeline': forum_timeline, 'twitter_timeline': twitter_timeline, 'facebook_timeline': facebook_timeline, 'youtube_timeline': youtube_timeline, 'diigo_timeline':diigo_timeline, 'blog_timeline':blog_timeline, 'platformactivity_pie_series':platformactivity_pie_series, 'show_dashboardnav':show_dashboardnav, 'course_code':course_code, 'platform':platform, 'title': title, 'course_code':course_code, 'platform':platform, 'username':username, 'reflections':reflections, 'sna_json': sna_json,  'tags': tags, 'activity_pie_series': activity_pie_series, 'posts_timeline': posts_timeline, 'shares_timeline': shares_timeline, 'likes_timeline': likes_timeline, 'comments_timeline': comments_timeline, 'sentiments': sentiments, 'coi': coi  }
+    context_dict = {'show_allplatforms_widgets': show_allplatforms_widgets, 
+        'forum_timeline': forum_timeline, 'twitter_timeline': twitter_timeline, 
+        'facebook_timeline': facebook_timeline, 'youtube_timeline': youtube_timeline, 
+        'diigo_timeline':diigo_timeline, 'blog_timeline':blog_timeline, 
+        'platformactivity_pie_series':platformactivity_pie_series, 
+        'show_dashboardnav':show_dashboardnav, 'course_code':course_code, 
+        'platform':platform, 'title': title, 'course_code':course_code, 'platform':platform, 
+        'username':username, 'reflections':reflections, 'sna_json': sna_json,
+        'tags': tags, 'activity_pie_series': activity_pie_series, 'posts_timeline': posts_timeline, 
+        'shares_timeline': shares_timeline, 'likes_timeline': likes_timeline, 
+        'comments_timeline': comments_timeline, 'sentiments': sentiments, 'coi': coi,
+        'centrality': centrality
+    }
 
     return render_to_response('dashboard/mydashboard.html', context_dict, context)
 
@@ -432,3 +453,48 @@ def myclassifications(request):
 
     context_dict = {'course_code':course_code, 'platform':platform, 'title': "Community of Inquiry Classification", 'username':username, 'uid':uid, 'classifications': classifications_list }
     return render_to_response('dashboard/myclassifications.html', context_dict, context)
+
+
+@login_required
+def ccadashboard(request):
+    context = RequestContext(request)
+
+    course_code = request.GET.get('course_code')
+    platform = request.GET.get('platform')
+
+    title = "CCA Dashboard: %s (Platform: %s)" % (course_code, platform)
+    
+    """
+    show_dashboardnav = True
+
+    posts_timeline = get_timeseries('created', platform, course_code)
+    shares_timeline = get_timeseries('shared', platform, course_code)
+    likes_timeline = get_timeseries('liked', platform, course_code)
+    comments_timeline = get_timeseries('commented', platform, course_code)
+
+    sna_json = sna_buildjson(platform, course_code, relationshipstoinclude="'mentioned','liked','shared','commented'")
+    centrality = getCentrality(sna_json)
+    context_dict = {
+        'show_dashboardnav':show_dashboardnav,'course_code':course_code, 'platform':platform, 
+        'title': title, 'sna_json': sna_json, 'posts_timeline': posts_timeline, 
+        'shares_timeline': shares_timeline, 'likes_timeline': likes_timeline, 'comments_timeline': comments_timeline,
+        'centrality': centrality
+    }
+    """
+    context_dict = {'course_code':course_code, 'platform':platform, 'title': title, }
+    
+    return render_to_response('dashboard/ccadashboard.html', context_dict, context)
+
+
+@login_required
+def ccadata(request):
+
+    # print request.GET.get('course_code')
+    # print request.GET.get('platform')
+
+    result = getCCAData(request.user, request.GET.get('course_code'), request.GET.get('platform'))
+    
+    #print result
+
+    response = JsonResponse(result, status=status.HTTP_200_OK)
+    return response

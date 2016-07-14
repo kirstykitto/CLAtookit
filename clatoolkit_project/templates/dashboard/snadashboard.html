@@ -57,7 +57,12 @@
               <div class="alert alert-warning">
                   Click on your node to view the messages you have posted. Click on a link (or relationship) to view the messages that were shared or commented on by another user.
               </div>
+              <div id="popup" title="Centrality">
+                <table class="table table-striped table-bordered table-hover" id="centrality-popup">
+                </table>
+              </div>
               <div id="mynetwork" style="height: 500px;"></div>
+
             </div>
             <strong>Legend: </strong><br/>
             - White Nodes: Mentioned users not registered with CLAToolkit<br/>
@@ -68,8 +73,10 @@
             <!-- /.panel-body -->
         </div>
         <!-- /.panel -->
+                      
     </div>
 </div>
+
 <!-- /.row -->
 <div class="row">
     <div class="col-lg-12">
@@ -91,6 +98,27 @@
     </div>
     <!-- /.col-lg-8 -->
 </div>
+
+<div class="row">
+    <div class="col-lg-12">
+
+        <div class="panel panel-default">
+          <div class="panel-heading">
+              <i class="fa fa-bar-chart-o fa-fw"></i>Centrality
+          </div>
+          <!-- /.panel-heading -->
+          <div class="panel-body">
+            <div class="dataTable_wrapper">
+                <table class="table table-striped table-bordered table-hover" id="dctable">
+                </table>
+            </div>
+          </div>
+          <!-- /.panel-body -->
+        </div>
+        <!-- /.panel -->
+    </div>
+</div>
+
 {% endblock %}
 
 {% block js_block %}
@@ -100,6 +128,7 @@
 
 var sna_data = {{sna_json}};
 var platform = "{{platform}}";
+var centrality = {{centrality}};
 function update_data()
 {
   var chart = $('#pageview_chart').highcharts();
@@ -132,7 +161,6 @@ function update_snadata(start_date, end_date)
   //console.log("end_date:" + end_date)
   $.get("/clatoolkit/sna", { course_code:"{{course_code}}", platform:"{{platform}}", start_date:start_date, end_date:end_date, relationshipstoinclude:relationshipstoinclude},
     function(data){
-      //console.log("SNA: " + data);
       sna_data = data;
       render_sna(sna_data);
     });
@@ -227,7 +255,6 @@ function update_messages(nodes,edges)
       render_messages(datatable_array);
       $('#message_loading').hide();
     });
-
 }
 
 function getnodelabel(node_id)
@@ -287,6 +314,47 @@ function render_messages(dataSet)
 function render_sna(data)
 {
   var container = document.getElementById('mynetwork');
+  var options = getDrawOption()
+  var network = new vis.Network(container, data, options);
+  // Capture click event
+  network.on("click", function (params) {
+        params.event = "[original event]";
+        //document.getElementById('relationships').innerHTML = '<h2>Click event:</h2>' + JSON.stringify(params, null, 4);
+        update_messages(params.nodes,params.edges);
+        showCentralityPopup(params)
+  });
+}
+
+function showCentralityPopup(params)
+{
+  data = getCentralityDataSetByUser(params);
+  if(data.length == 0) {
+    return;
+  }
+  //console.log(data);
+  
+  $('#centrality-popup').dataTable().fnDestroy();
+  $('#centrality-popup').DataTable( {
+        bFilter: false,
+        bInfo: false,
+        bPaginate: false,
+        bLengthChange: false,
+        data: data,
+        columns: [
+            { title: "Measure"},
+            { title: "Value" }
+        ]
+    } );
+  
+  $('#popup').dialog("open");
+  $('#popup').dialog("option", "width", 300);
+  //$('#popup').dialog( "option", "position", { my: "left top", at: "left bottom", of: button } );
+}
+
+
+
+function getDrawOption()
+{
   var options = {
       nodes: {
           shape: 'dot',
@@ -324,13 +392,49 @@ function render_sna(data)
           keyboard: true
       }
   };
-  var network = new vis.Network(container, data, options);
-  // Capture click event
-  network.on("click", function (params) {
-        params.event = "[original event]";
-        //document.getElementById('relationships').innerHTML = '<h2>Click event:</h2>' + JSON.stringify(params, null, 4);
-        update_messages(params.nodes,params.edges);
-  });
+  return options;
+}
+
+function getCentralityDataSetByUser(params)
+{
+  label = getnodelabel(params.nodes[0])
+
+  var ret = [];
+  for(var i = 0; i < centrality.label.length; i++)
+  {
+    if (centrality.label[i] == label) {
+      var datarow = ["In degree", centrality.inDegree[i]];
+      ret.push(datarow);
+      datarow = ["Out degree", centrality.outDegree[i]];
+      ret.push(datarow);
+      datarow = ["Betweenness", centrality.betweenness[i]];
+      ret.push(datarow);
+      datarow = ["In Closeness", centrality.inCloseness[i]];
+      ret.push(datarow);
+      datarow = ["Out Closeness", centrality.outCloseness[i]];
+      ret.push(datarow);
+      datarow = ["Eigenvector", centrality.eigenvector[i]];
+      ret.push(datarow);
+      break;
+    }
+  }
+  return ret;
+}
+
+function getCentralityDataSet(centr)
+{
+  var ret = [];
+  var index = 0;
+  for(var i = 0; i < centr.ids.length; i++)
+  {
+    var datarow = [centr.ids[i], centr.label[i], centr.inDegree[i], 
+          centr.outDegree[i], centr.totalDegree[i], centr.betweenness[i],
+          centr.inCloseness[i], centr.outCloseness[i], centr.totalCloseness[i],
+          centr.eigenvector[i]
+        ];
+    ret.push(datarow);
+  }
+  return ret;
 }
 
 $(function() {
@@ -412,24 +516,47 @@ $(function() {
             { title: "Date" }
         ]
     } );
+
+  dc = getCentralityDataSet(centrality);
+  $('#dctable').DataTable( {
+        data: dc,
+        columns: [
+            { title: "ids", "bVisible": false },
+            { title: "Users" },
+            { title: "In Degree" },
+            { title: "Out Degree" },
+            { title: "Total Degree" },
+            { title: "Betweenness" },
+            { title: "In Closeness" },
+            { title: "Out Closeness" },
+            { title: "Total Closeness" },
+            { title: "Eigenvector" }
+        ]
+    } );
+  var density = centrality.density;
+  $("#dctable_filter").append("<div id='density'></div>");
+  $("#density").html("Density: " + density + " ");
+  $("#density").css("font-weight", "bold");
+  $("#density").css("font-size", "16px");
+  $('#popup').dialog({
+      autoOpen: false,
+      buttons: {
+        "OK": function(){
+          $(this).dialog('close');
+        }
+      }
+  });
+  $('#centrality-popup').DataTable( {
+        data: [],
+        columns: [
+            { title: "measure"},
+            { title: "value" }
+        ]
+    } );
+
 });
 
 </script>
+
 {% endautoescape %}
 {% endblock %}
-<!--
-<div class="col-lg-4">
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <i class="fa fa-bell fa-fw"></i> Metrics
-        </div>
-
-        <div class="panel-body">
-
-        </div>
-
-    </div>
-
-
-</div>
--->

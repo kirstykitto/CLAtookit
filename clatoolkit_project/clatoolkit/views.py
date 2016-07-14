@@ -294,6 +294,7 @@ class SNARESTView(DefaultsMixin, APIView):
         #myClass = CalcClass(get_arg1, get_arg2, *args, **kw)
         #print sna_buildjson(platform, course_code)
         result = json.loads(sna_buildjson(platform, course_code, username=username, start_date=start_date, end_date=end_date, relationshipstoinclude=relationshipstoinclude))
+        result["neighbours"] = json.loads(getNeighbours(json.dumps(result)))
         #{'nodes':["test sna","2nd test"]} #myClass.do_work()
         response = Response(result, status=status.HTTP_200_OK)
         return response
