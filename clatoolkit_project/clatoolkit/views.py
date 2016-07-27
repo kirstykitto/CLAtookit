@@ -27,6 +27,10 @@ import json
 
 # from fb_data.models import
 
+def home(request):
+    context = RequestContext(request)
+    return render_to_response('clatoolkit/home.html', {}, context)
+
 def userlogin(request):
     context = RequestContext(request)
 
@@ -55,11 +59,108 @@ def userlogin(request):
 
     # The request is not a HTTP POST, so display the login form.
     # This scenario would most likely be a HTTP GET.
+
+    #if the user is found in our context, they're probably already logged in..
+    if request.user.is_authenticated():
+        return redirect('/dashboard/myunits')
+
     else:
         #print "ordinary get"
         # No context variables to pass to the template system, hence the
         # blank dictionary object...
         return render_to_response('clatoolkit/login.html', {}, context)
+
+
+#Unit management integration for staff - 13/05/16
+@login_required
+def unitmanagement(request):
+    context = RequestContext(request)
+
+    role = request.user.userprofile.role
+    user = request.user
+    action = None
+    unit_form = None
+    #coi_platforms_form = None
+    units = None
+    hidden_ucode = None
+
+    #User has submitted something
+    if request.method == 'POST':
+
+        print 'Got POST data: %s' % (request.POST)
+
+        #Copy post req data because we're removing some elements
+        post_data = request.POST.copy()
+
+        #Get the action context of submitted form
+        post_action = post_data.pop("action")[0]
+
+        #Getting the form to be displayed
+        if (post_action == 'edit'):
+            #If user is editing/updating a unit offering, fetch the details
+            course_code = post_data.pop('ucode')[0]
+
+            unitoffering_id = UnitOffering.objects.get(code=course_code)
+            unit_form = UnitOfferingForm(data=request.POST, instance=unitoffering_id)
+
+        else:
+            #otherwise we'll fill the form with submitted data
+            unit_form = UnitOfferingForm(data=request.POST)
+
+        #Validate and submit form data
+        if unit_form.is_valid():
+
+            #print 'Got valid form: %s' % (unit_form)
+
+            if post_action == 'edit':
+                #Updating db entry
+                unit = unit_form.save(commit=False)
+                unit.save(force_update=True)
+            else:
+                #Creating new unit offering
+                unit_form.save()
+
+
+            return redirect('/dashboard/myunits')
+        else:
+            print unit_form.errors
+            HttpResponse("ERROR: %s" % (unit_form.errors))
+    elif request.method == "GET":
+
+        action = request.GET.get('action')
+        course_code = request.GET.get('course_code')
+
+        if action == 'edit' and role == 'Staff':
+            unitoffering_id = UnitOffering.objects.get(code=course_code)
+            unit_form = UnitOfferingForm(instance=unitoffering_id)
+            hidden_ucode = course_code
+
+        if action == 'new' and role == 'Staff':
+            unit_form = UnitOfferingForm()
+
+        #staff member deletes unit offering
+        if action == 'delete' and role == 'Staff':
+            unit = UnitOffering.objects.get(code=course_code)
+            unit.delete()
+            return redirect('/dashboard/myunits')
+
+        #student removing their attached account to this course
+        if action == 'unenrol':
+            unit = UnitOffering.objects.filter(code=course_code)
+            user.usersinunitoffering.remove(unit)
+            return redirect('/dashboard/myunits')
+
+        if role == "Staff":
+            units = UnitOffering.objects.filter()
+
+        else:
+            units = UnitOffering.objects.filter(users=user, enabled=True)
+
+    context_dict = {'action' : action, 'unit_form' : unit_form, 'units' : units, 'role' : role, 'ucode' : hidden_ucode}
+    return render_to_response(
+        'clatoolkit/unitmanagement.html',
+        context_dict, context
+    )
 
 def register(request):
     # Like before, get the request's context.
@@ -73,6 +174,7 @@ def register(request):
     show_units = True
     selected_unit = 0
     course = None
+    platforms = []
 
     # If it's a HTTP POST, we're interested in processing form data.
     if request.method == 'POST':
@@ -124,6 +226,8 @@ def register(request):
                 course = UnitOffering.objects.get(code=course_code)
                 show_units = False
                 selected_unit = course.id
+                platforms = course.get_required_platforms()
+                #get social media to be used
 
     # Not a HTTP POST, so we render our form using two ModelForm instances.
     # These forms will be blank, ready for user input.
@@ -137,11 +241,14 @@ def register(request):
             course = UnitOffering.objects.get(code=course_code)
             show_units = False
             selected_unit = course.id
+            platforms = course.get_required_platforms()
 
     # Render the template depending on the context.
     return render_to_response(
         'clatoolkit/register.html',
-            {'user_form': user_form, 'profile_form': profile_form, 'registered': registered, 'show_units': show_units, 'selected_unit': selected_unit, "course": course}, context)
+            {'user_form': user_form, 'profile_form': profile_form, 'registered': registered,
+             'show_units': show_units, 'selected_unit': selected_unit, "course": course, "req_platforms": platforms}, context)
+
 
 @login_required
 def socialmediaaccounts(request):
@@ -157,17 +264,20 @@ def socialmediaaccounts(request):
             return redirect('/dashboard/myunits')
         # Invalid form or forms - mistakes or something else?
         else:
-            print user_form.errors, profile_form.errors
+
+            print profile_form.errors
+
 
     # Not a HTTP POST, so we render our form using two ModelForm instances.
     # These forms will be blank, ready for user input.
     else:
         profile_form = UserProfileForm(instance=usr_profile)
+        units = UnitOffering.objects.filter(users=user_id)
 
     # Render the template depending on the context.
     return render_to_response(
         'clatoolkit/socialmediaaccounts.html',
-            {'profile_form': profile_form}, context)
+            {'profile_form': profile_form, 'units': units}, context)
 
 
 def eventregistration(request):
@@ -294,6 +404,7 @@ class SNARESTView(DefaultsMixin, APIView):
         #myClass = CalcClass(get_arg1, get_arg2, *args, **kw)
         #print sna_buildjson(platform, course_code)
         result = json.loads(sna_buildjson(platform, course_code, username=username, start_date=start_date, end_date=end_date, relationshipstoinclude=relationshipstoinclude))
+        result["neighbours"] = json.loads(getNeighbours(json.dumps(result)))
         #{'nodes':["test sna","2nd test"]} #myClass.do_work()
         response = Response(result, status=status.HTTP_200_OK)
         return response

@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.http import HttpResponse
 from django.db import connection
 from utils import *
-from clatoolkit.models import UnitOffering, DashboardReflection, LearningRecord, Classification, UserClassification, GroupMap
+from clatoolkit.models import OauthFlowTemp, UnitOffering, DashboardReflection, LearningRecord, Classification, UserClassification, GroupMap, UserTrelloCourseBoardMap
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from functools import wraps
@@ -12,6 +12,78 @@ from django.db.models import Q
 import datetime
 from django.db.models import Count
 import random
+from rest_framework import status
+from django.http import JsonResponse
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+import requests
+
+#Attach trello board
+@login_required
+@api_view()
+def get_trello_boards(request):
+    user_profile = UserProfile.objects.get(user=request.user)
+    trello_member_id = user_profile.trello_account_name
+    token_qs = OauthFlowTemp.objects.get(googleid=trello_member_id)
+    token = token_qs.transferdata
+    key = request.GET.get('key')
+    course_code = request.GET.get('course_code')
+
+    print key + ' >>>>> ' + token
+
+    trello_boardsList_url = 'https://api.trello.com/1/member/me/boards?key=%s&token=%s' % (key,token)
+
+    r = requests.get(trello_boardsList_url)
+    print "got response %s" % r.json()
+
+    print 'course_code: %s' % (course_code)
+    boardsList = r.json()
+
+    board_namesList = []
+    board_namesList.append('<ul>')
+
+    for board in boardsList:
+        board_namesList.append('<li>')
+        #board = json.load(board)
+        #format to something nice :)
+        board_name = board['name']
+        board_url = board['url']
+        board_id = board['id']
+
+        html_resp = '<a href="#" class="board_choice" onclick="javascript:add_board(\''+course_code+'\',\''+board_id+'\')">'+board_name+'</a>'
+
+        board_namesList.append(html_resp)
+        board_namesList.append('</li>')
+    board_namesList.append('</ul>')
+
+    return Response(('').join(board_namesList))
+
+@login_required
+@api_view()
+def add_board_to_course(request):
+    course = UnitOffering.objects.get(code=request.GET.get('course_code'))
+    board_list = course.attached_trello_boards
+
+    print 'board list %s' % (board_list)
+    print 'board list is "": %s' % (board_list == '')
+
+    if board_list == '':
+        new_board_list = request.GET.get('id')
+    else:
+        new_board_list = board_list+','+request.GET.get('id')
+
+    course.attached_trello_boards = new_board_list
+
+    course.save()
+
+    trello_user_course_map = UserTrelloCourseBoardMap(user=request.user, course_code=course.code, board_id=request.GET.get('id'))
+
+    trello_user_course_map.save()
+
+    return Response('<b>Board successfully added to course - <a href="/dashboard/myunits/">Reload</a></b>')
+
 
 def check_access(required_roles=None):
     def decorator(view):
@@ -39,6 +111,58 @@ def check_access(required_roles=None):
         return wrapper
     return decorator
 
+
+@login_required
+@api_view()
+def trello_remove_board(request):
+    course_code = request.GET.get('course_code')
+
+    trello_user_course_map = UserTrelloCourseBoardMap.objects.filter(user=request.user, course_code=course_code)
+    unit = UnitOffering.objects.get(code=course_code)
+
+    #pythonic code below removes the ID of the attached board being removed
+    unit.attached_trello_boards = ','.join([board for board in unit.attached_trello_boards.split(',')
+                           if board is not trello_user_course_map.board_id[0]])
+
+    unit.save()
+
+    trello_user_course_map.delete()
+
+    return myunits(request)
+
+@login_required
+@api_view()
+def trello_myunits_restview(request):
+        course_code = request.GET.get('course_code')
+
+
+        trello_user_course_map = UserTrelloCourseBoardMap.objects.filter(user=request.user, course_code=course_code)
+
+        if trello_user_course_map:
+
+            token_qs = OauthFlowTemp.objects.filter(googleid=request.user.userprofile.trello_account_name)
+            if token_qs:
+                key = getPluginKey('trello')
+
+                http = 'https://api.trello.com/1/boards/%s?key=%s&token=%s' % (trello_user_course_map[0].board_id,key,token_qs[0].transferdata)
+
+                print http
+
+                r = requests.get(http)
+
+                print 'result: %s' % (r.json())
+
+                board = r.json()
+
+                response = {'data': '<a href="'+board['url']+'""><i class="fa fa-trello" aria-hidden="true"></i>   '+board['name']+'</a> | '
+                            '<a href="/dashboard/removeBoard?course_code='+course_code+'">Remove</a>', 'course_code': course_code}
+
+                return Response(response)
+        else:
+            response = {'data': '<a href="#" onclick="javascript:get_and_link_board(\''+course_code+'\')">Attach a Trello Board to plan your Work!</a>'
+                            '<div id="trello_board_display"></div>', 'course_code': course_code}
+            return Response(response)
+
 @login_required
 def myunits(request):
     context = RequestContext(request)
@@ -50,13 +174,18 @@ def myunits(request):
 
     shownocontentwarning = False
 
+    trello_attached = not request.user.userprofile.trello_account_name == ''
+
+    print trello_attached
+
     #if student check if the student has imported data
     if role=='Student':
         username = request.user.username
         if LearningRecord.objects.filter(username__iexact=username).count() == 0:
             shownocontentwarning = True
 
-    context_dict = {'title': "My Units", 'units': units, 'show_dashboardnav':show_dashboardnav, 'shownocontentwarning': shownocontentwarning, 'role': role}
+    context_dict = {'title': "My Units", 'units': units, 'show_dashboardnav':show_dashboardnav, 'shownocontentwarning': shownocontentwarning, 'role': role,
+                     'trello_attached_to_acc': trello_attached}
 
     return render_to_response('dashboard/myunits.html', context_dict, context)
 
@@ -186,8 +315,14 @@ def snadashboard(request):
     comments_timeline = get_timeseries('commented', platform, course_code)
 
     sna_json = sna_buildjson(platform, course_code, relationshipstoinclude="'mentioned','liked','shared','commented'")
-
-    context_dict = {'show_dashboardnav':show_dashboardnav,'course_code':course_code, 'platform':platform, 'title': title, 'sna_json': sna_json, 'posts_timeline': posts_timeline, 'shares_timeline': shares_timeline, 'likes_timeline': likes_timeline, 'comments_timeline': comments_timeline }
+    #sna_neighbours = getNeighbours(sna_json)
+    centrality = getCentrality(sna_json)
+    context_dict = {
+        'show_dashboardnav':show_dashboardnav,'course_code':course_code, 'platform':platform, 
+        'title': title, 'sna_json': sna_json, 'posts_timeline': posts_timeline, 
+        'shares_timeline': shares_timeline, 'likes_timeline': likes_timeline, 'comments_timeline': comments_timeline,
+        'centrality': centrality
+    }
 
     return render_to_response('dashboard/snadashboard.html', context_dict, context)
 
@@ -387,15 +522,27 @@ def mydashboard(request):
 
     #topcontenttable = get_top_content_table(platform, course_code, username=username)
 
-    sna_json = sna_buildjson(platform, course_code, username=username, relationshipstoinclude="'mentioned','liked','shared','commented'")
-
+    sna_json = sna_buildjson(platform, course_code, relationshipstoinclude="'mentioned','liked','shared','commented'")
+    centrality = getCentrality(sna_json)
     tags = get_wordcloud(platform, course_code, username=username)
 
     sentiments = getClassifiedCounts(platform, course_code, username=username, classifier="VaderSentiment")
     coi = getClassifiedCounts(platform, course_code, username=username, classifier="NaiveBayes_t1.model")
 
     reflections = DashboardReflection.objects.filter(username=username)
-    context_dict = {'show_allplatforms_widgets': show_allplatforms_widgets, 'forum_timeline': forum_timeline, 'twitter_timeline': twitter_timeline, 'facebook_timeline': facebook_timeline, 'youtube_timeline': youtube_timeline, 'diigo_timeline':diigo_timeline, 'blog_timeline':blog_timeline, 'platformactivity_pie_series':platformactivity_pie_series, 'show_dashboardnav':show_dashboardnav, 'course_code':course_code, 'platform':platform, 'title': title, 'course_code':course_code, 'platform':platform, 'username':username, 'reflections':reflections, 'sna_json': sna_json,  'tags': tags, 'activity_pie_series': activity_pie_series, 'posts_timeline': posts_timeline, 'shares_timeline': shares_timeline, 'likes_timeline': likes_timeline, 'comments_timeline': comments_timeline, 'sentiments': sentiments, 'coi': coi  }
+    context_dict = {'show_allplatforms_widgets': show_allplatforms_widgets, 
+        'forum_timeline': forum_timeline, 'twitter_timeline': twitter_timeline, 
+        'facebook_timeline': facebook_timeline, 'youtube_timeline': youtube_timeline, 
+        'diigo_timeline':diigo_timeline, 'blog_timeline':blog_timeline, 
+        'platformactivity_pie_series':platformactivity_pie_series, 
+        'show_dashboardnav':show_dashboardnav, 'course_code':course_code, 
+        'platform':platform, 'title': title, 'course_code':course_code, 'platform':platform, 
+        'username':username, 'reflections':reflections, 'sna_json': sna_json,
+        'tags': tags, 'activity_pie_series': activity_pie_series, 'posts_timeline': posts_timeline, 
+        'shares_timeline': shares_timeline, 'likes_timeline': likes_timeline, 
+        'comments_timeline': comments_timeline, 'sentiments': sentiments, 'coi': coi,
+        'centrality': centrality
+    }
 
     return render_to_response('dashboard/mydashboard.html', context_dict, context)
 
@@ -432,3 +579,48 @@ def myclassifications(request):
 
     context_dict = {'course_code':course_code, 'platform':platform, 'title': "Community of Inquiry Classification", 'username':username, 'uid':uid, 'classifications': classifications_list }
     return render_to_response('dashboard/myclassifications.html', context_dict, context)
+
+
+@login_required
+def ccadashboard(request):
+    context = RequestContext(request)
+
+    course_code = request.GET.get('course_code')
+    platform = request.GET.get('platform')
+
+    title = "CCA Dashboard: %s (Platform: %s)" % (course_code, platform)
+    
+    """
+    show_dashboardnav = True
+
+    posts_timeline = get_timeseries('created', platform, course_code)
+    shares_timeline = get_timeseries('shared', platform, course_code)
+    likes_timeline = get_timeseries('liked', platform, course_code)
+    comments_timeline = get_timeseries('commented', platform, course_code)
+
+    sna_json = sna_buildjson(platform, course_code, relationshipstoinclude="'mentioned','liked','shared','commented'")
+    centrality = getCentrality(sna_json)
+    context_dict = {
+        'show_dashboardnav':show_dashboardnav,'course_code':course_code, 'platform':platform, 
+        'title': title, 'sna_json': sna_json, 'posts_timeline': posts_timeline, 
+        'shares_timeline': shares_timeline, 'likes_timeline': likes_timeline, 'comments_timeline': comments_timeline,
+        'centrality': centrality
+    }
+    """
+    context_dict = {'course_code':course_code, 'platform':platform, 'title': title, }
+    
+    return render_to_response('dashboard/ccadashboard.html', context_dict, context)
+
+
+@login_required
+def ccadata(request):
+
+    # print request.GET.get('course_code')
+    # print request.GET.get('platform')
+
+    result = getCCAData(request.user, request.GET.get('course_code'), request.GET.get('platform'))
+    
+    #print result
+
+    response = JsonResponse(result, status=status.HTTP_200_OK)
+    return response

@@ -12,7 +12,7 @@ from dataintegration.tasks import *
 from .forms import FacebookGatherForm
 import json
 from pprint import pprint
-from clatoolkit.models import UnitOffering, DashboardReflection, LearningRecord, SocialRelationship, CachedContent, GroupMap, OauthFlowTemp
+from clatoolkit.models import UserTrelloCourseBoardMap, ApiCredentials, UnitOffering, DashboardReflection, LearningRecord, SocialRelationship, CachedContent, GroupMap, OauthFlowTemp
 from django.db import connection
 import dateutil.parser
 from dashboard.utils import *
@@ -20,11 +20,94 @@ from dataintegration.groupbuilder import *
 from dataintegration.core.processingpipeline import *
 from dataintegration.core.recipepermissions import *
 
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 from django.conf import settings
 
 from dataintegration.googleLib import *
 from oauth2client.client import OAuth2WebServerFlow
 from django.contrib.sites.shortcuts import get_current_site
+
+import os
+import requests
+
+##############################################
+# Process Trello Link
+##############################################
+@api_view(['GET'])
+def process_trello(request):
+    token = request.GET.get("token")
+    key = request.GET.get("key")
+
+    trello_member_url = 'https://api.trello.com/1/tokens/%s/member?key=%s' % (token, key)
+
+    #Get trello member ID
+    r = requests.get(trello_member_url)
+    #print "got response %s" % r.json()
+    member_json = r.json()
+    member_id = member_json['id']
+
+    token_storage = OauthFlowTemp(googleid=member_id, transferdata=token, platform='trello')
+    token_storage.save()
+
+    request.session['trello_memberid'] = member_id
+
+    return Response(member_id)
+
+
+##############################################
+# Trello Data Extraction
+##############################################
+# TODO: ADD STUDENT REFRESH
+@api_view()
+def refreshtrello(request):
+    course_code = request.GET.get('course_code')
+    trello_courseboard_ids = request.GET.get('boards')
+    trello_courseboard_ids = trello_courseboard_ids.split(',')
+    print course_code
+
+    print trello_courseboard_ids
+
+    trello_plugin = settings.DATAINTEGRATION_PLUGINS['trello']
+    diag_count = 0
+
+    for board_id in trello_courseboard_ids:
+        trello_user_course_map = UserTrelloCourseBoardMap.objects.filter(board_id=board_id).filter(course_code=course_code)[0]
+        print 'got trello user course board map: %s' % (trello_user_course_map)
+
+        user = trello_user_course_map.user
+        usr_profile = UserProfile.objects.get(user=user)
+        token = OauthFlowTemp.objects.get(googleid=usr_profile.trello_account_name)
+
+
+        print 'Performing Trello Board Import for User: %s' % (user)
+        trello_plugin.perform_import(board_id, course_code, token=token.transferdata)
+        diag_count = diag_count + 1
+
+    post_smimport(course_code, 'trello')
+
+    return Response('<b>Trello refresh complete: %s users updated.</b>' % (diag_count))
+
+##############################################
+# GitHub Data Extraction
+##############################################
+def refreshgithub(request):
+
+    html_response = HttpResponse()
+    course_code = request.GET.get('course_code')
+    repoUrls = request.GET.get('urls')
+
+    github_plugin = settings.DATAINTEGRATION_PLUGINS['github']
+    ghDataList = github_plugin.perform_import(repoUrls, course_code)
+    post_smimport(course_code, "Github")
+
+    #html_response.write('GitHub Refreshed.')
+    #return html_response
+
+    return render(request, 'dataintegration/githubresult.html')
+
 
 ##############################################
 # Data Extraction for YouTube
@@ -42,7 +125,7 @@ def refreshgoogleauthflow(request):
     # store request data in temp table
     # there is no other way to send these with the url (in querystring) as the return url must be registered
     # and session var won't save due to redirect
-    twitter_id, fb_id, forum_id, google_id = get_smids_fromuid(user.id)
+    twitter_id, fb_id, forum_id, google_id, github_id, trello_id = get_smids_fromuid(user.id)
     t = OauthFlowTemp.objects.filter(googleid=google_id).delete()
     temp_transfer_data = OauthFlowTemp(googleid=google_id, course_code=course_code, platform=platform, transferdata=channelIds)
     temp_transfer_data.save()
@@ -195,6 +278,7 @@ def refreshblog(request):
     html_response.write('Blog Refreshed.')
     return html_response
 
+
 def dipluginauthomaticlogin(request):
     platform = request.GET.get('platform')
     course_code = request.GET.get('course_code')
@@ -252,8 +336,11 @@ def get_social_media_id(request):
     # We we need the response object for the adapter.
     html_response = HttpResponse()
 
+    #Facebook endpoints break on GET variables.....
+    platform = request.GET.get('platform')
 
     if (platform in settings.DATAINTEGRATION_PLUGINS_INCLUDEAUTHOMATIC):
+
         di_plugin = settings.DATAINTEGRATION_PLUGINS[platform]
         authomatic = Authomatic(di_plugin.authomatic_config_json, di_plugin.authomatic_secretkey)
         result = authomatic.login(DjangoAdapter(request, html_response), di_plugin.authomatic_config_key, report_errors=True)
@@ -313,3 +400,4 @@ def assigngroups(request):
     assign_groups_class(course_code)
     html_response.write('Groups Assigned')
     return html_response
+

@@ -62,8 +62,56 @@
                   <label for="id_blog_id">Blog Username:</label><br />
                   {{ profile_form.blog_id }}
                 </div>
+                <div class="form-group">
+                  <p class="help-block">{{ profile_form.github_account_name.errors }}</p>
+                  <label for="id_github_account_name">GitHub Account:</label><br />
+                  {{ profile_form.github_account_name }}
+                </div>
+
+                <div class="form-group">
+                  <p class="help-block">{{ profile_form.trello_account_name.errors }}</p>
+                  <label for="id_github_account_name">Trello Account:</label><br />
+                  {{ profile_form.trello_account_name }}
+
+                    <p>
+                      <a id="trellolink" href="#" onclick="javascript:get_and_link_trello();" target="_blank">Click here to link your trello profile</a>
+                  </p>
+                </div>
                 <button type="submit" class="btn btn-primary btn-lg btn-block">Update</button>
             </form>
+          </div>
+      </div>
+  </div>
+  <!-- /.col-lg-6 -->
+    <div class="col-lg-6">
+      <div class="panel panel-warning">
+          <div class="panel-heading">
+              Units Attached to Social Media Accounts
+          </div>
+
+          <div class="panel-body">
+              {% if units %}
+              <div class="col-sm-10 col-sm-offset-1"><table class="table table-sm table-hover rbpls">
+                <!--<thead>
+                    <tr>
+                        <th>Unit Name</th><th></th>
+                    </tr>
+                </thead>-->
+                <tbody>
+                    {% for unit in units %}
+                    <tr>
+                        <td>
+                            <b>{{unit.code}}</b>: {{unit.name}}
+                        </td>
+                        <td>
+                            <a href="/clatoolkit/unitmanagement/?action=unenrol&course_code={{unit.code}}"><i class="fa fa-sign-out fa-fw"></i> Withdraw</a>
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+              </table></div>
+              {% endif %}
           </div>
       </div>
   </div>
@@ -75,6 +123,42 @@
 
 {% block js_block %}
 {% autoescape off %}
+
+    <script src="https://trello.com/1/client.js?key=c908d424dda56c79d373f780a1ae26c7"></script>
+    <script>
+
+
+    function get_and_link_trello() {
+        var key = "c908d424dda56c79d373f780a1ae26c7";
+
+        Trello.authorize({
+            type: "popup",
+            expiration: "never",
+            name: "CLAToolkit",
+            persist: "true",
+            success: function() {
+                $.ajax({
+                url: "/dataintegration/process_trello/?token="+Trello.token()+"&key="+key,
+                type: 'GET',
+                success: function(response) {
+                    $('#id_trello_account_name').val(response)
+                }
+                });
+
+                var o = document.getElementById('trellolink');
+                o.innerHTML = "Trello account linked!";
+
+                //id_trello_account_name
+
+            },
+            error: function() {  console.log('Trello Auth failed.'); },
+            scope: { read: true, write: true },
+        });
+
+    }
+
+
+    </script>
 
 {% endautoescape %}
 {% endblock %}

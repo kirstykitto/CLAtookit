@@ -104,6 +104,7 @@
               <!-- /.dropdown -->
               {% endblock %}
               {% block userprofilenav %}
+                <!--<li><a href="/clatoolkit/mygroups"><i class="fa fa-users" aria-hidden="true"></i> My Groups</a></li>-->
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                         <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
@@ -690,6 +691,10 @@
     <!-- Custom Theme JavaScript -->
     <script src="{% static 'js/sb-admin-2.js'%}"></script>
 
+    <!-- Trello API Helper -->
+    <script src="https://api.trello.com/1/client.js?key=c908d424dda56c79d373f780a1ae26c7"></script>
+
+
     <script>
     /*
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -714,3 +719,4 @@
 </body>
 
 </html>
+

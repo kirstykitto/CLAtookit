@@ -1,0 +1,216 @@
+{% extends "clatoolkit/base_clatoolkit.html" %}
+{% load static %}
+
+{% block title %}{{title}}{% endblock %}
+
+{% block heading %}{{role}} Unit Management{% endblock %}
+
+{% block body %}
+<div class="row">
+  <div class="col-lg-6">
+      <div class="panel panel-info">
+      {% if action %}
+
+          <!-- New/Edit Unit Offering -->
+          {% if action == "new" or action == "edit" and role == "Staff" %}
+              <div class="panel-heading">
+                 Create New Unit
+              </div>
+              <div class="panel-body">
+                <form role="form" id="unit_form" method="post" action="/clatoolkit/unitmanagement/">
+                    {% csrf_token %}
+                    {{ unit_form.non_field_errors }}
+
+                    <div class="form-group">
+                        <p class="help-block">At least 1 social media account is required to run unit with CLAToolkit.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.code.errors }}</p>
+                        <label for="id_code">Unit Code:</label> (required) <br />
+                        {{ unit_form.code }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.name.errors }}</p>
+                        <label for="id_name">Unit Name:</label> (required) <br />
+                        {{ unit_form.name }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.semester.errors }}</p>
+                        <label for="id_semester">Semester:</label> <br />
+                        {{ unit_form.semester }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.description.errors }}</p>
+                        <label for="id_desc">Description:</label> <br />
+                        {{ unit_form.description }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.users.errors }}</p>
+                        <label for="id_users">Users: </label> <br />
+                        {{ unit_form.users }}
+                    </div>
+
+                    <div class="form-group">
+                        <h1><small>Social Media Configuration</small></h1>
+                        <p class="help-block">{{ unit_form.twitter_hashtags.errors }}</p>
+                        <label for="id_twitter_hashtags">Twitter Hashtags: </label> (hashtag begins with "#". multiple hashtags comma seperated.) <br />
+                        {{ unit_form.twitter_hashtags }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.google_groups.errors }}</p>
+                        <label for="id_google_groups">Google+ Groups: </label> (multiple groups comma seperated.) <br />
+                        {{ unit_form.google_groups }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.facebook_groups.errors }}</p>
+                        <label for="id_facebook_groups">Facebook Groups:</label> (multiple groups comma seperated.) <br />
+                        {{ unit_form.facebook_groups }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.forum_urls.errors }}</p>
+                        <label for="id_forum_urls">Forum URLs:</label> (multiple urls comma seperated.) <br />
+                        {{ unit_form.forum_urls }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.youtube_channel_ids.errors }}</p>
+                        <label for="id_youtube_channel_ids">YouTube Channel ID:</label> (multiple channel IDs comma seperated.) <br />
+                        {{ unit_form.youtube_channel_ids }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.blogmember_urls.errors }}</p>
+                        <label for="id_blogmemeber_urls">Blog URLs: </label> (blogs must be RSS compatible, mutiple blog urls comma seperated.) <br />
+                        {{ unit_form.blogmember_urls }}
+                    </div>
+
+                    <div class="form-group">
+                        <h1><small>Unit Configuration</small></h1>
+                        <p class="help-block">{{ unit_form.enable_coi_classifier.errors }}</p>
+                        <label for="id_coi_enabled">Enable Community of Inquiry Classifier</label>
+                        {{ unit_form.enable_coi_classifier }}
+
+                        <div id="coi_platforms">
+                            <label>Use Community of Inquiry Classifier with</label> <br/>
+
+                            {{ unit_form.coi_platforms }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.event.errors }}</p>
+                        <label for="id_event_enabled">Event</label>
+                        {{ unit_form.event }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.enabled.errors }}</p>
+                        <label for="id_unit_enabled">Unit Available</label>
+                        {{ unit_form.enabled }}
+                    </div>
+
+                    <div class="form-group">
+                        <h1><small>Learning Record Store (LRS) Configuration (optional)</small></h1>
+                        <p class="help-block">{{  unit_form.lrs_endpoint.errors }}</p>
+                        <label for="id_lrs_endpoint">LRS Endpoint: </label> <br />
+                        {{ unit_form.lrs_endpoint }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.lrs_username.errors }}</p>
+                        <label for="id_lrs_username">LRS Username: </label> <br />
+                        {{ unit_form.lrs_username }}
+                    </div>
+
+                    <div class="form-group">
+                        <p class="help-block">{{ unit_form.lrs_password.errors }}</p>
+                        <label for="id_lrs_password">LRS Password: </label> <br />
+                        {{ unit_form.lrs_password }}
+                    </div>
+
+                    <input type="hidden" name="action" value="{{action}}" />
+                    {% if action == "edit" %}
+
+                        <input type="hidden" name="ucode" value="{{ucode}}" />
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary btn-lg btn-block">Create Unit Offering</button>
+                </form>
+              </div>
+              {% if action == 'edit' %}
+              <div class="panel-footer">
+                  <a href="/clatoolkit/unitmanagement/?action=delete&course_code={{ucode}}"><button type="button" class="btn btn-warning btn-sm">Delete Unit Offering</button></a>
+              <span class="text-danger pull-right">NOTE: this will remove the Unit from the CLAToolkit.</span></div>
+              {% endif %}
+
+          {% endif %}
+
+      {% else %}
+
+          <div class="panel-heading">
+              Unit Offerings
+          </div>
+          <div class="panel-body">
+            <table class="table table-hover">
+                {% if units %}
+                <thead>
+                    <tr>
+                        <th>Course Code</th>
+                        <th>Name</th>
+                        <th>Options</th>
+                    </tr>
+                </thead>
+                {% endif %}
+                <tbody>
+                {% for unit in units %}
+                    <tr>
+                        <td>{{unit.code}}</td>
+                        <td>{{unit.name}}</td>
+                        <td>
+                            <a href="/clatoolkit/unitmanagement/?action=unenrol&course_code={{unit.code}}"><i class="fa fa-sign-out fa-fw"></i> Withdraw</a>
+                            {% if role == "Staff" %}
+                                || <a href="/clatoolkit/unitmanagement/?action=edit&course_code={{unit.code}}">Edit</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+          </div>
+          {% if role == "Staff" %}
+          <div class="panel-footer"><a href="/clatoolkit/unitmanagement/?action=new">Add new Unit</a></div>
+          {% endif %}
+
+  {% endif %}
+        </div>
+  </div>
+  <!-- /.col-lg-6 -->
+
+</div>
+<!-- /.row -->
+
+    <!-- #id_enable_coi_classifier -->
+{% endblock %}
+
+{% block js_block %}
+{% autoescape off %}
+<script type="text/javascript">
+$('#coi_platforms').hide();
+$('#id_enable_coi_classifier').click(function(){
+    if ($(this).is(":checked")) {
+        $('#coi_platforms').show(300);
+    } else {
+        $('#coi_platforms').hide(200);
+    }
+});
+</script>
+{% endautoescape %}
+{% endblock %}
+

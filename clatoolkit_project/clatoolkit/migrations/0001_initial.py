@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations
+from django.db import migrations, models
 import django_pgjson.fields
 from django.conf import settings
 
@@ -72,9 +72,29 @@ class Migration(migrations.Migration):
                 ('platformid', models.CharField(max_length=5000, blank=True)),
                 ('platformparentid', models.CharField(max_length=5000, blank=True)),
                 ('parentusername', models.CharField(max_length=5000, blank=True)),
+                ('parentdisplayname', models.CharField(max_length=5000, blank=True)),
                 ('message', models.TextField(blank=True)),
                 ('datetimestamp', models.DateTimeField(null=True, blank=True)),
                 ('senttolrs', models.CharField(max_length=5000, blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='OauthFlowTemp',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('googleid', models.CharField(max_length=1000)),
+                ('platform', models.CharField(max_length=1000)),
+                ('course_code', models.CharField(max_length=1000)),
+                ('transferdata', models.CharField(max_length=1000)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='OfflinePlatformAuthToken',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('token', models.CharField(max_length=1000)),
+                ('platform', models.CharField(max_length=1000)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
@@ -102,10 +122,16 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('enabled', models.BooleanField(default=False)),
                 ('event', models.BooleanField(default=False)),
+                ('enable_coi_classifier', models.BooleanField(default=False)),
                 ('twitter_hashtags', models.TextField()),
                 ('google_groups', models.TextField(blank=True)),
                 ('facebook_groups', models.TextField(blank=True)),
                 ('forum_urls', models.TextField(blank=True)),
+                ('youtube_channelIds', models.TextField(blank=True)),
+                ('diigo_tags', models.TextField(blank=True)),
+                ('blogmember_urls', models.TextField(blank=True)),
+                ('github_urls', models.TextField(blank=True)),
+                ('coi_platforms', models.TextField(blank=True)),
                 ('ll_endpoint', models.CharField(max_length=60, blank=True)),
                 ('ll_username', models.CharField(max_length=60, blank=True)),
                 ('ll_password', models.CharField(max_length=60, blank=True)),
@@ -134,6 +160,9 @@ class Migration(migrations.Migration):
                 ('fb_id', models.CharField(max_length=30, blank=True)),
                 ('twitter_id', models.CharField(max_length=30, blank=True)),
                 ('forum_id', models.CharField(max_length=500, blank=True)),
+                ('google_account_name', models.CharField(max_length=255, blank=True)),
+                ('diigo_username', models.CharField(max_length=255, blank=True)),
+                ('blog_id', models.CharField(max_length=255, blank=True)),
                 ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
             ],
         ),

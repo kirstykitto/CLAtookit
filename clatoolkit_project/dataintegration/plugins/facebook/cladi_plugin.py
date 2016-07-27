@@ -51,7 +51,8 @@ class FacebookPlugin(DIBasePlugin, DIPluginDashboardMixin, DIAuthomaticPluginMix
             }
 
         self.authomatic_config_key = 'fb'
-        self.authomatic_secretkey = self.api_config_dict['authomatic_secretkey']
+
+        self.authomatic_secretkey = str(self.api_config_dict['authomatic_secretkey'])
 
     def perform_import(self, retrieval_param, course_code, authomatic_result):
         """
@@ -125,3 +126,4 @@ class FacebookPlugin(DIBasePlugin, DIPluginDashboardMixin, DIAuthomaticPluginMix
                             insert_comment(usr_dict, post_id, comment_id, comment_message, comment_from_uid, comment_from_name, comment_created_time, course_code, self.platform, self.platform_url, parentusername=from_uid)
 
 registry.register(FacebookPlugin)
+

@@ -87,6 +87,28 @@ DATABASES = {
         'HOST': os.environ['DB_SERVICE'],
         'PORT': os.environ['DB_PORT']
     }
+
+}
+'''
+DATABASES = {
+    'default': {
+        'ENGINE' : 'django.db.backends.postgresql_psycopg2',
+        'NAME' : 'cladjangodb',
+        'USER' : '',
+        'PASSWORD' : '',
+        'HOST' : 'localhost',
+        'PORT' : '5432'
+    },
+    
+    'tweetimport': {
+	'ENGINE': 'django.db.backends.sqlite3',
+	'NAME': os.path.join(BASE_DIR, 'tweetimport.sqlite3'),
+    }
+
+}'''
+
+REST_FRAMEWORK = {
+	'UNAUTHENTICATED_USER': None,
 }
 
 # Internationalization
@@ -130,7 +152,9 @@ STATICFILES_FINDERS = (
 AUTH_PROFILE_MODULE = "account.userprofile"
 
 GA_TRACKING_ID = ''
-
+#
+#MEDIA_ROOT = os.path.join(BASE_DIR, 'static')
+#MEDIA_URL = '/static/'
 
 #####################################################
 ######### Load Social Media Data Integration plugins

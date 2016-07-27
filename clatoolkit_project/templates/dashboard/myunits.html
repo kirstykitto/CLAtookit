@@ -12,6 +12,8 @@
         <div class="panel panel-default">
             <div class="panel-heading">
               {{unit.code}}: {{unit.name}} ({{unit.semester}})
+
+                <div id="{{unit.code}}_sm"></div>
             </div>
             <!-- /.panel-heading -->
             <div class="panel-body">
@@ -24,7 +26,7 @@ Twitter Hashtags: {% for hashtag in unit.twitter_hashtags_as_list %} <a href="ht
 {% endif %}
 {% if unit.facebook_groups_as_list|length > 0 %}
 <br/>
-Facebook Groups: {% for grp in unit.facebook_groups_as_list %} <a href="https://www.facebook.com/groups/{{grp}}" target="_blank">{{grp}}</a>  {% endfor %}  [<a href="/dashboard/?course_code={{unit.code}}&platform=Facebook">Activity</a> | <a href="/dashboard/ca_dashboard?course_code={{unit.code}}&platform=Facebook">Content Analysis</a> | <a href="/dashboard/sna_dashboard?course_code={{unit.code}}&platform=Facebook">Social Network Analysis</a>] | <a href="/dataintegration/dipluginauthomaticlogin/?course_code={{unit.code}}&group_id={{unit.facebook_groups}}&platform=Facebook">Refresh Imported Data</a>
+Facebook Groups: {% for grp in unit.facebook_groups_as_list %} <a href="https://www.facebook.com/groups/{{grp}}" target="_blank">{{grp}}</a>  {% endfor %}  [<a href="/dashboard/?course_code={{unit.code}}&platform=Facebook">Activity</a> | <a href="/dashboard/ca_dashboard?course_code={{unit.code}}&platform=Facebook">Content Analysis</a> | <a href="/dashboard/sna_dashboard?course_code={{unit.code}}&platform=Facebook">Social Network Analysis</a>] | <a href='/dataintegration/dipluginauthomaticlogin/?context={"platform": "facebook", "course_code": "{{unit.code}}", "group": "{{unit.facebook_groups}}"}'>Refresh Imported Data</a>
 {% endif %}
 {% if unit.youtube_channelIds_as_list|length > 0 %}
 <br/>
@@ -38,6 +40,15 @@ Forums: {{unit.forum_urls}} [<a href="/dashboard/?course_code={{unit.code}}&plat
 <br/>
 Diigo Tags: {% for tag in unit.diigo_tags_as_list %} <a href="https://www.diigo.com/tag/{{tag}}" target="_blank">{{tag}}</a>  {% endfor %}  [<a href="/dashboard/?course_code={{unit.code}}&platform=Diigo">Activity</a> | <a href="/dashboard/ca_dashboard?course_code={{unit.code}}&platform=Diigo">Content Analysis</a> | <a href="/dashboard/sna_dashboard?course_code={{unit.code}}&platform=Diigo">Social Network Analysis</a>] | <a href="/dataintegration/refreshdiigo/?course_code={{unit.code}}&tags={{unit.diigo_tags|urlencode}}">Refresh Imported Data</a>
 {% endif %}
+<br/>
+{% if unit.github_urls_as_list|length > 0 %}
+GitHub URLs: {% for url in unit.github_urls_as_list %} <a href="{{url}}" target="_blank">{{url}}</a>  {% endfor %} [<a href="/dashboard/?course_code={{unit.code}}&platform=GitHub">Activity</a> | <a href="/dashboard/ca_dashboard?course_code={{unit.code}}&platform=GitHub">Content Analysis</a> | <a href="/dashboard/sna_dashboard?course_code={{unit.code}}&platform=GitHub">Social Network Analysis</a>] | <a href="/dataintegration/refreshgithub/?course_code={{unit.code}}&course_id={{unit.id}}&urls={{unit.github_urls|urlencode}}&platform=GitHub">Refresh Imported Data</a>
+{% endif %}
+
+{% if unit.trello_boards_as_list|length > 0 %}
+    Trello Boards signed up: {{unit.trello_boards_as_list|length}} || <a href="/dataintegration/refreshtrello/?course_code={{unit.code}}&course_id={{unit.id}}&boards={{unit.attached_trello_boards|urlencode}}&platform=trello">Refresh Imported Data</a> <div id="trello_import_sucess"></div>
+{% endif %}
+
 {% if unit.enable_coi_classifier %}
 <hr/>
 {% if unit.code == 'IFN614' %}
@@ -61,9 +72,10 @@ CLA Toolkit Unit Registration Link for Students: http://clatoolkit.beyondlms.org
 <div class="alert alert-warning">
     <strong>Note:</strong> Your social media content has not been imported. Imports are scheduled overnight. Please login and check tomorrow.
 </div>
+
 {% else %}
 <p>
-<a href="/dashboard/mydashboard?course_code={{unit.code}}&platform=all">Go to My Social Media Dashboard</a>
+<a href="/dashboard/mydashboard?course_code={{unit.code}}&platform=all">Go to My Social Media Dashboard</a><br/>
 {% if unit.enable_coi_classifier %}
 <br/>
 {% if unit.code == 'IFN614' %}
@@ -72,7 +84,19 @@ CLA Toolkit Unit Registration Link for Students: http://clatoolkit.beyondlms.org
 <a href="/dashboard/myclassifications?course_code={{unit.code}}&platform=YouTube">View Community of Inquiry Classifications</a>
 {% endif %}
 {% endif %}
+<br/>
+
 </p>
+
+    {% if trello_attached_to_acc %}  <!-- Need to add custom filter to perform this functionality (show user their attach board) TODO:-->
+        <p>
+            <hr/>
+            <h5>Workload Management</h5>
+            <div id="{{unit.code}}" class="trello_board"></div>
+        </p>
+    {% else %}
+        <a href="/clatoolkit/socialmediaaccounts/">Add Trello to your account to plan and monitor your workload</a>
+    {% endif %}
 {% endif %}
 
 {% endif %}
@@ -90,9 +114,56 @@ CLA Toolkit Unit Registration Link for Students: http://clatoolkit.beyondlms.org
 {% block js_block %}
 {% autoescape off %}
 <script>
-$(function() {
+    function get_and_link_board(course_code) {
+        $.ajax({
+            url: "/dashboard/getBoards?key=c908d424dda56c79d373f780a1ae26c7&course_code="+course_code,
+            type: 'GET',
+            success: function(response) {
+                document.getElementById('trello_board_display').innerHTML = response;
+            }
+        });
+    }
+
+    function add_board(course_code, id) {
+        $.ajax({
+           url: "/dashboard/addboardtocourse?course_code="+course_code+"&id="+id,
+           type: 'GET',
+           success: function(response) {
+               document.getElementById('trello_board_display').innerHTML = response;
+           }
+        });
+    }
+$(document).ready(function(e){
+    var boards = document.getElementsByClassName("trello_board");
+
+    console.log(boards);
+
+    for (var i = 0; i < boards.length; i++) {
+        boards[i].innerHTML = "Loading trello board...";
+
+        $.ajax({
+            url: "/dashboard/getAttachedBoard?course_code="+boards[i].id,
+            type: 'GET',
+            success: function(resp) {
+
+                resp_data = resp.data;
+                resp_cc = resp.course_code;
+
+                console.log(resp_cc);
+
+                document.getElementById(resp_cc).innerHTML = resp_data;
+            }
+    });
+
+    }
+
 
 });
+   // $('#trello_board_display').hide();
+
+
+
+
 </script>
 {% endautoescape %}
 {% endblock %}

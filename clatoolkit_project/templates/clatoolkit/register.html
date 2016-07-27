@@ -98,8 +98,36 @@
                     Forum posts for IFN614 students will be retrieved from <a href="http://2015.informationprograms.info/forums/" target="_blank">2015.informationprograms.info/forums/</a>
                   </p>
                 </div>
-                {% endif  %}
-                <div class="form-group">
+                {% else  %}
+
+                <!-- Twitter -->
+                {% if 'twitter' in req_platforms %}
+                <div><a href="#" class="form_control" handle="twitter">Attach Twitter Account</a></div>
+                <div id="twitter_input" class="form-group">
+                  <p class="help-block">{{ profile_form.twitter_id.errors }}</p>
+                  <label for="id_twitter_id">Twitter Username:</label> (Don't include the @ prefix.)<br />
+                  {{ profile_form.twitter_id }}
+                </div>
+                {% endif %}
+
+                <!-- Facebook -->
+                {% if 'facebook' in req_platforms %}
+                <div><a href="#" class="form_control" handle="facebook">Attach Facebook Account</a></div>
+                <div id="facebook_input" class="form-group">
+                  <p class="help-block">{{ profile_form.fb_id.errors }}</p>
+                  <label for="id_fb_id">Facebook ID:</label><br />
+                  {{ profile_form.fb_id }}
+                  <p>
+                      <!---->
+                    <a href="/dataintegration/get_social/?platform=facebook" target="_blank">Click here to get your Facebook ID - you will need to be logged into Facebook (opens in new tab)</a>
+                  </p>
+                </div>
+                {% endif %}
+
+                <!-- Youtube -->
+                {% if 'youtube' in req_platforms %}
+                <div><a href="#" class="form_control" handle="youtube">Attach YouTube Account</a></div>
+                <div id="youtube_input" class="form-group">
                   <p class="help-block">{{ profile_form.google_account_name.errors }}</p>
                   <label for="id_google_account_name">Youtube Channel URL:</label><br />
                   {{ profile_form.google_account_name }}
@@ -107,16 +135,51 @@
                     <a href="/dataintegration/get_youtubechannel" target="_blank">Click here to get your YouTube Channel ID - you will need to be logged into YouTube (opens in new tab)</a>
                   </p>
                 </div>
-                <div class="form-group">
+                {% endif %}
+
+                <!-- Diigo -->
+                {% if 'diigo' in req_platforms %}
+                <div><a href="#" class="form_control" handle="diigo"">Attach Diigo Account</a></div>
+                <div id="diigo_input" class="form-group">
                   <p class="help-block">{{ profile_form.diigo_username.errors }}</p>
                   <label for="id_diigo_username">Diigo Username:</label><br />
                   {{ profile_form.diigo_username }}
                 </div>
-                <div class="form-group">
+                {% endif %}
+
+                <!-- Blog -->
+                {% if 'blog' in req_platforms %}
+                <div><a href="#" class="form_control" handle="blog">Attach Blog (RSS-Compatible blogs only)</a></div>
+                <div id="blog_input" class="form-group">
                   <p class="help-block">{{ profile_form.blog_id.errors }}</p>
                   <label for="id_blog_id">Blog Username:</label><br />
                   {{ profile_form.blog_id }}
                 </div>
+                {% endif %}
+
+                <!-- Github -->
+                {% if 'github' in req_platforms %}
+		        <div class="form-group">
+                  <p class="help-block">{{ profile_form.github_account_name.errors }}</p>
+                  <label for="id_github_account_name">GitHub Account:</label><br />
+                  {{ profile_form.github_account_name }}
+                </div>
+                {% endif %}
+
+                <!-- Trello -->
+                {% if 'trello' in req_platforms %}
+                <div class="form-group">
+                  <p class="help-block">{{ profile_form.trello_account.errors }}</p>
+                  <label for="id_trello_account_name">Trello:</label><br />
+                  {{ profile_form.trello_account_name }}
+
+                  <p>
+                      <a id="trellolink" href="#" onclick="javascript:get_and_link_trello();" target="_blank">Click here to link your trello profile</a>
+                  </p>
+                </div>
+                {% endif %}
+
+                    {% endif %}
                 <p>
                 By clicking the register button below, you are indicating that you:
                 <ul>
@@ -298,7 +361,77 @@
 {% endblock %}
 
 {% block js_block %}
+    <script src="https://trello.com/1/client.js?key=c908d424dda56c79d373f780a1ae26c7"></script>
+    <script>
+
+
+    function get_and_link_trello() {
+        var key = "c908d424dda56c79d373f780a1ae26c7";
+
+        Trello.authorize({
+            type: "popup",
+            expiration: "never",
+            name: "CLAToolkit",
+            persist: "true",
+            success: function() {
+                $.ajax({
+                url: "/dataintegration/process_trello/?token="+Trello.token()+"&key="+key,
+                type: 'GET',
+                success: function(response) {
+                    $('#id_trello_account_name').val(response)
+                }
+                });
+
+                var o = document.getElementById('trellolink');
+                o.innerHTML = "Trello account linked!";
+
+                //id_trello_account_name
+
+            },
+            error: function() {  console.log('Trello Auth failed.'); },
+            scope: { read: true, write: true },
+        });
+
+    }
+
+
+    </script>
+
+    <script type="text/javascript">
+
+        var platforms_dict = {
+            twitter : 'twitter_input',
+            facebook : 'facebook_input',
+            youtube : 'youtube_input',
+            diigo : 'diigo_input',
+            blog : 'blog_input'
+        };
+
+        $(function() {
+            for (var platform in platforms_dict) {
+                    $('#'+platforms_dict[platform]).hide()
+                    //console.log('.'+platforms_dict[platform])
+                }
+        });
+
+        $('.form_control').on('click', function(e){
+            e.preventDefault();
+            //console.log($(this));
+            platform = $(this).attr("handle");
+            //console.log(platform);
+            $(this).hide()
+            $('#'+platform+"_input").show();
+        });
+
+    </script>
+    <style>
+        div .form_control {
+            line-height: 3;
+            font-weight: bold;
+        }
+    </style>
 {% autoescape off %}
 
 {% endautoescape %}
 {% endblock %}
+

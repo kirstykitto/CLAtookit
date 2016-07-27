@@ -136,3 +136,4 @@ class BlogrssPlugin(DIBasePlugin, DIPluginDashboardMixin):
                     insert_comment(usr_dict, parent_link, link, message, post_username, author, post_date, course_code, self.platform, self.platform_url, shared_username=parent_username)
 
 registry.register(BlogrssPlugin)
+
