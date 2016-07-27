@@ -258,6 +258,8 @@
 {% autoescape off %}
 <script src="{% static 'js/vis.js'%}"></script>
 <script src="http://mistic100.github.io/jQCloud/dist/jqcloud2/dist/jqcloud.min.js"></script>
+<script src="{% static 'js/d3/d3.min.js' %}"></script>
+<script src="{% static 'js/jquery-ui-1.11.4.custom/jquery-ui.js'%}"></script>
 <script>
   var sna_data = {{sna_json}};
   var wordcloud_data = {{tags|safe}};

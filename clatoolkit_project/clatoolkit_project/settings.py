@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = 'development'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'clatoolkit_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-DATABASES = {
+'''DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': os.environ['DB_NAME'],
@@ -88,8 +88,8 @@ DATABASES = {
         'PORT': os.environ['DB_PORT']
     }
 
-}
-'''
+}'''
+
 DATABASES = {
     'default': {
         'ENGINE' : 'django.db.backends.postgresql_psycopg2',
@@ -104,8 +104,7 @@ DATABASES = {
 	'ENGINE': 'django.db.backends.sqlite3',
 	'NAME': os.path.join(BASE_DIR, 'tweetimport.sqlite3'),
     }
-
-}'''
+}
 
 REST_FRAMEWORK = {
 	'UNAUTHENTICATED_USER': None,

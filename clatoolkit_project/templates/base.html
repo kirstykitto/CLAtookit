@@ -64,7 +64,11 @@
       }
       g.arc text {
         font-size: 10px;
-      }      
+      }
+
+      #centrality-popup tbody tr .even {
+          background-color: white; !important;
+      }
 
     </style>
 
@@ -107,7 +111,7 @@
                 <!--<li><a href="/clatoolkit/mygroups"><i class="fa fa-users" aria-hidden="true"></i> My Groups</a></li>-->
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                        <i class="fa fa-user fa-fw"></i>{{user.username}}  <i class="fa fa-caret-down"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-user">
                         <li><a href="/clatoolkit/socialmediaaccounts"><i class="fa fa-user fa-fw"></i> Social Media Accounts</a></li>
@@ -693,7 +697,8 @@
 
     <!-- Trello API Helper -->
     <script src="https://api.trello.com/1/client.js?key=c908d424dda56c79d373f780a1ae26c7"></script>
-
+<script src="{% static 'js/d3/d3.min.js' %}"></script>
+<script src="{% static 'js/jquery-ui-1.11.4.custom/jquery-ui.js'%}"></script>
 
     <script>
     /*

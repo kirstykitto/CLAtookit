@@ -76,19 +76,7 @@
                 <div class="form-group">
                   <p class="help-block">At least 1 social media account is required.</p>
                 </div>
-                <div class="form-group">
-                  <p class="help-block">{{ profile_form.twitter_id.errors }}</p>
-                  <label for="id_twitter_id">Twitter Username:</label> (Don't include the @ prefix.)<br />
-                  {{ profile_form.twitter_id }}
-                </div>
-                <div class="form-group">
-                  <p class="help-block">{{ profile_form.fb_id.errors }}</p>
-                  <label for="id_fb_id">Facebook ID:</label><br />
-                  {{ profile_form.fb_id }}
-                  <p>
-                    <a href="/dataintegration/get_social" target="_blank">Click here to get your Facebook ID - you will need to be logged into Facebook (opens in new tab)</a>
-                  </p>
-                </div>
+
                 {% if course.code == 'IFN614'  %}
                 <div class="form-group">
                   <p class="help-block">{{ profile_form.forum_id.errors }}</p>
@@ -167,7 +155,7 @@
                 {% endif %}
 
                 <!-- Trello -->
-                {% if 'trello' in req_platforms %}
+                    {% if 'trello' in req_platforms %}
                 <div class="form-group">
                   <p class="help-block">{{ profile_form.trello_account.errors }}</p>
                   <label for="id_trello_account_name">Trello:</label><br />
@@ -177,8 +165,17 @@
                       <a id="trellolink" href="#" onclick="javascript:get_and_link_trello();" target="_blank">Click here to link your trello profile</a>
                   </p>
                 </div>
-                {% endif %}
+                {% else %}
+                <div class="form-group">
+                  <p class="help-block">Attaching a Trello account is optional, it can be used to help plan and track your workload for your course. <br/>
+                      {{ profile_form.trello_account.errors }}</p>
+                  <label for="id_trello_account_name">Trello:</label><br />
+                  {{ profile_form.trello_account_name }}
 
+                  <p>
+                      <a id="trellolink" href="#" onclick="javascript:get_and_link_trello();" target="_blank">Click here to link your trello profile</a>
+                  </p>
+                </div>
                     {% endif %}
                 <p>
                 By clicking the register button below, you are indicating that you:

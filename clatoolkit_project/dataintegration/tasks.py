@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from clatoolkit.models import UserProfile, LearningRecord, UnitOffering
-from dataintegration import socialmediabuilder
+import dataintegration.core.socialmediarecipebuilder as socialmediabuilder
 from django.db import connections
 
 import json
