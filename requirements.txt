@@ -35,4 +35,4 @@ scikit-bio==0.2.3
 scikit-learn==0.16.1
 scipy==0.15.1
 gunicorn==19.3.0
-feedparser==5.2.0
+feedparser==5.2.1
