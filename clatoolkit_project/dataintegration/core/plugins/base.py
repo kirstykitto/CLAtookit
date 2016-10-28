@@ -17,7 +17,7 @@ class DIBasePlugin(object):
 
     config_json_keys = []
 
-    def perform_import(self, retrieval_param, course_code):
+    def perform_import(self, retrieval_param, unit):
         """Called to start the import from api for a plugin.
 
 

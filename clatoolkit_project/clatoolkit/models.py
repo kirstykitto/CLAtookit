@@ -1,8 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django_pgjson.fields import JsonBField
+from django.core.exceptions import ValidationError
 from django_pgjson.fields import JsonField
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, SuspiciousOperation
+from django.http import Http404
+from django.utils import timezone
 import os
+
 
 class UserProfile(models.Model):
     '''
@@ -51,6 +56,27 @@ class UserProfile(models.Model):
 
     #Trello user ID
     trello_account_name = models.CharField(max_length=255, blank=True)
+
+    # JSON field to store plugin accounts in
+    accounts = JsonBField(null=True)
+
+    def add_platform_account(self, platform, identifier):
+        try:
+            up = self.from_platform_identifier(platform, identifier)
+            if up != self:
+                raise ValidationError("This account has already been registered by another user")
+
+        except self.DoesNotExist:
+            if platform not in self.accounts:
+                self.accounts[platform] = []
+            self.accounts[platform].append(identifier)
+
+            self.save()
+
+    @classmethod
+    def from_platform_identifier(cls, platform, identifier):
+        return cls.objects.get(accounts__jcontains={platform: [identifier]})
+
 
 class UserTrelloCourseBoardMap(models.Model):
     user = models.ForeignKey(User)
@@ -199,6 +225,18 @@ class UnitOffering(models.Model):
 
         return platforms
 
+    @classmethod
+    def from_get(cls, request):
+        try:
+            unit_id = request.GET["unit"]
+        except:
+            raise SuspiciousOperation("Unit not specified")
+        try:
+            unit = cls.objects.get(id=unit_id)
+            return unit
+        except cls.DoesNotExist:
+            raise Http404
+
 
 class UnitOfferingMembership(models.Model):
     user = models.ForeignKey(User)
@@ -217,6 +255,7 @@ class LearningRecord(models.Model):
     xapi = JsonField()
     unit = models.ForeignKey(UnitOffering)
     platform = models.CharField(max_length=5000, blank=False)
+    platform_group_id = models.CharField(max_length=100, blank=True)
     verb = models.CharField(max_length=5000, blank=False)
     user = models.ForeignKey(User)
     platformid = models.CharField(max_length=5000, blank=True)
@@ -225,20 +264,30 @@ class LearningRecord(models.Model):
     parent_user = models.ForeignKey(User, null=True, related_name="parent_user")
     parent_user_external = models.CharField(max_length=5000, blank=True, null=True)
     message = models.TextField(blank=True)
-    datetimestamp = models.DateTimeField(auto_now_add=True, null=True)
+    datetimestamp = models.DateTimeField(default=timezone.now)
     senttolrs = models.CharField(max_length=5000, blank=True)
 
 
 class SocialRelationship(models.Model):
     unit = models.ForeignKey(UnitOffering)
     platform = models.CharField(max_length=5000, blank=False)
-    verb = models.CharField(max_length=5000, blank=False)
+    platform_group_id = models.CharField(max_length=255, blank=True)
+    type = models.CharField(max_length=100, blank=True)
+    verb = models.CharField(max_length=5000, blank=True)
     from_user = models.ForeignKey(User)
     to_user = models.ForeignKey(User, null=True, related_name="to_user")
     to_external_user = models.CharField(max_length=5000, blank=True, null=True)
     platformid = models.CharField(max_length=5000, blank=True)
-    message = models.TextField(blank=False)
-    datetimestamp = models.DateTimeField(blank=True)
+    message = models.TextField(blank=True)
+    datetimestamp = models.DateTimeField(null=True)
+
+    @classmethod
+    def relationship_exists(cls, **kwargs):
+        try:
+            cls.objects.get(**kwargs)
+            return True
+        except cls.DoesNotExist:
+            return False
 
 
 class CachedContent(models.Model):

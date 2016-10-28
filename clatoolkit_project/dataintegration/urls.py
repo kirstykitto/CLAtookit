@@ -1,9 +1,17 @@
-
-from django.conf.urls import patterns, url
+from django.conf import settings
+from django.conf.urls import patterns, url, include
 
 from dataintegration import views
 
-urlpatterns = patterns(
+urlpatterns = []
+
+for plugin in settings.DATAINTEGRATION_PLUGINS:
+    if hasattr(settings.DATAINTEGRATION_PLUGINS[plugin], "get_url_patterns"):
+        platform = settings.DATAINTEGRATION_PLUGINS[plugin].platform
+        urlpatterns.append(
+            url(r'^{}/'.format(platform), include(settings.DATAINTEGRATION_PLUGINS[plugin].get_url_patterns())))
+
+urlpatterns += patterns(
     url(r'^home/$', views.home, name='home'),
     #url(r'^login/(?P<group_id>\d+)$', views.login, name='login'),
     url(r'^get_social/$', views.get_social_media_id, name='get_social'),

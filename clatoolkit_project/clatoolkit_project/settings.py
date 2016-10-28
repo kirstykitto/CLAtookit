@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import inspect
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -81,22 +82,6 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'clatoolkit_project.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
 WSGI_APPLICATION = 'clatoolkit_project.wsgi.application'
 
 
@@ -148,31 +133,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
-
-# web accessible folder
-STATIC_ROOT = BASE_DIR #os.path.join(BASE_DIR, 'static')
-
-# URL prefix for static files.
-STATIC_URL = '/static/'
-
-STATIC_PATH = os.path.join(BASE_DIR,'static')
-
-# Additional locations of static files
-STATICFILES_DIRS = (
-    # location of your application, should not be public web accessible
-    STATIC_PATH,
-)
-
-# List of finder classes that know how to find static files in
-# various locations.
-STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-)
-
 AUTH_PROFILE_MODULE = "account.userprofile"
 
 GA_TRACKING_ID = ''
@@ -200,3 +160,48 @@ DATAINTEGRATION_PLUGINS_INCLUDEDASHBOARD_VERBS = get_includeindashboardwidgets_v
 DATAINTEGRATION_PLUGINS_INCLUDEDASHBOARD_PLATFORMS = get_includeindashboardwidgets_platforms()
 DATAINTEGRATION_PLUGINS = get_plugins()
 DATAINTEGRATION_PLUGINS_INCLUDEAUTHOMATIC = get_includeauthomaticplugins_platforms()
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates'), PLUGIN_PATH],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.8/howto/static-files/
+
+# web accessible folder
+STATIC_ROOT = BASE_DIR #os.path.join(BASE_DIR, 'static')
+
+# URL prefix for static files.
+STATIC_URL = '/static/'
+
+STATIC_PATH = os.path.join(BASE_DIR,'static')
+
+# Additional locations of static files
+STATICFILES_DIRS = [
+    # location of your application, should not be public web accessible
+    STATIC_PATH,
+]
+
+# Include the static dir for plugins so they can define their own assets
+for plugin in pluginModules:
+    dir = os.path.join(PLUGIN_PATH, plugin, "static")
+    STATICFILES_DIRS.append((plugin, dir),)
+
+# List of finder classes that know how to find static files in
+# various locations.
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)

@@ -200,18 +200,12 @@ def socialmedia_builder(verb, platform, account_name, account_homepage, object_t
     return statement
 
 
-def insert_post(user, post_id, message, created_time, unit, platform, platform_url, tags=()):
+def insert_post(user, post_id, message, created_time, unit, platform, platform_url, platform_group_id=None, tags=()):
     verb = 'created'
 
     if check_ifnotinlocallrs(unit, platform, post_id, user, verb):
-        stm = socialmedia_builder(verb=verb, platform=platform, account_name=get_smid(user, platform),
-                                  account_homepage=platform_url, object_type='Note', object_id=post_id, message=message,
-                                  timestamp=created_time, account_email=user.email, user_name=user.username, unit=unit,
-                                  tags=tags)
-        jsn = ast.literal_eval(stm.to_json())
-        stm_json = pretty_print_json(jsn)
-        lrs = LearningRecord(xapi=stm_json, unit=unit, verb=verb, platform=platform, user=user, platformid=post_id,
-                             message=message, datetimestamp=created_time)
+        lrs = LearningRecord(xapi=None, unit=unit, verb=verb, platform=platform, user=user, platformid=post_id,
+                             message=message, datetimestamp=created_time, platform_group_id=platform_group_id)
         lrs.save()
         for tag in tags:
             if tag[0] == "@":
@@ -243,19 +237,22 @@ def insert_blogpost(usr_dict, post_id,message,from_name,from_uid, created_time, 
                 socialrelationship.save()
 
 
-def insert_like(user, post_id, message, unit, platform, created_time=None, parent_user=None, parent_user_external=None):
+def insert_like(user, post_id, message, unit, platform, platform_group_id=None, created_time=None, parent_user=None,
+                parent_user_external=None):
 
     verb = "liked"
 
     if check_ifnotinlocallrs(unit, platform, post_id, user, verb):
-        lrs = LearningRecord(xapi=None, unit=unit, verb=verb, platform=platform, user=user, platformid=post_id,
-                             message=message, platformparentid=post_id, parent_user=parent_user,
-                             parent_user_external=parent_user_external, datetimestamp=created_time)
+        lrs = LearningRecord(xapi=None, unit=unit, verb=verb, platform=platform, platform_group_id=platform_group_id,
+                             user=user, platformid=post_id, message=message, platformparentid=post_id,
+                             parent_user=parent_user, parent_user_external=parent_user_external,
+                             datetimestamp=created_time)
         lrs.save()
 
         sr = SocialRelationship(unit=unit, verb=verb, from_user=user, to_user=parent_user,
-                                to_external_user=parent_user_external, platform=platform, message=message,
-                                datetimestamp=created_time, platformid=post_id)
+                                to_external_user=parent_user_external, platform=platform,
+                                platform_group_id=platform_group_id, message=message, datetimestamp=created_time,
+                                platformid=post_id)
         sr.save()
 
 
@@ -276,37 +273,35 @@ def insert_blogcomment(usr_dict, post_id, comment_id, comment_message, comment_f
 
 
 def insert_comment(user, post_id, comment_id, comment_message, comment_created_time, unit, platform, platform_url,
-                   parent_user=None, parent_user_external=None):
-
+                   platform_group_id=None, parent_user=None, parent_user_external=None):
     if check_ifnotinlocallrs(unit, platform, comment_id):
 
         lrs = LearningRecord(xapi=None, unit=unit, verb='commented', platform=platform, user=user,
-                             platformid=comment_id, platformparentid=post_id, parent_user=parent_user,
-                             parent_user_external=parent_user_external, message=comment_message,
-                             datetimestamp=comment_created_time)
+                             platformid=comment_id, platformparentid=post_id, platform_group_id=platform_group_id,
+                             parent_user=parent_user, parent_user_external=parent_user_external,
+                             message=comment_message, datetimestamp=comment_created_time)
         lrs.save()
 
         sr = SocialRelationship(verb="commented", from_user=user, to_user=parent_user,
-                                to_external_user=parent_user_external, platform=platform, message=comment_message,
+                                to_external_user=parent_user_external, platform=platform,
+                                platform_group_id=platform_group_id, message=comment_message,
                                 datetimestamp=comment_created_time, unit=unit, platformid=comment_id)
         sr.save()
 
 
-def insert_share(user, post_id, share_id, comment_message, comment_created_time, unit, platform, platform_url, tags=(),
-                 parent_user=None, parent_external_user=None):
+def insert_share(user, post_id, share_id, comment_message, comment_created_time, unit, platform, platform_url,
+                 platform_group_id=None, tags=(), parent_user=None, parent_external_user=None):
     if check_ifnotinlocallrs(unit, platform, share_id):
-        # TODO - re-enable xAPI
-        # stm = socialmedia_builder(verb='shared', platform=platform, account_name=comment_from_uid, account_homepage=platform_url, object_type='Note', object_id=share_id, message=comment_message, parent_id=post_id, parent_object_type='Note', timestamp=comment_created_time, account_email=usr_dict['email'], user_name=comment_from_name, course_code=course_code, tags=tags )
-        # jsn = ast.literal_eval(stm.to_json())
-        # stm_json = pretty_print_json(jsn)
-        lrs = LearningRecord(xapi="{}", unit=unit, verb='shared', platform=platform, user=user, platformid=share_id,
+        lrs = LearningRecord(xapi=None, unit=unit, verb='shared', platform=platform,
+                             platform_group_id=platform_group_id, user=user, platformid=share_id,
                              platformparentid=post_id, parent_user=parent_user,
                              parent_external_user=parent_external_user, message=comment_message,
                              datetimestamp=comment_created_time)
         lrs.save()
 
         sr = SocialRelationship(verb="shared", from_user=user, to_user=parent_user,
-                                to_external_user=parent_external_user, platform=platform, message=comment_message,
+                                to_external_user=parent_external_user, platform=platform,
+                                platform_group_id=platform_group_id, message=comment_message,
                                 datetimestamp=comment_created_time, course_code=unit.code, platformid=share_id)
         sr.save()
 
@@ -425,6 +420,35 @@ def insert_closedopen_object(usr_dict, object_id, object_text, obj_updater_uid, 
                                  datetimestamp=obj_update_time)
             lrs.save()
 
+
+def insert_relationship(from_user, to_user, relationship_type, unit, platform, platform_group_id=None,
+                        directional=True):
+    search_args = {
+        "from_user": from_user,
+        "to_user": to_user,
+        "type": relationship_type,
+        "unit": unit,
+        "platform": platform
+    }
+
+    if platform_group_id:
+        search_args["platform_group_id"] = platform_group_id
+
+    # Check if it exists
+    exists = True if SocialRelationship.relationship_exists(**search_args) else False
+
+    # If the relationship is not direction check if the opposite exists
+    if not directional:
+        search_args["from_user"] = to_user
+        search_args["to_user"] = from_user
+
+        exists = True if SocialRelationship.relationship_exists(**search_args) else False
+
+    # Create the relationship if it doesn't already exist
+    if not exists:
+        sr = SocialRelationship(unit=unit, platform=platform, platform_group_id=platform_group_id,
+                                type=relationship_type, from_user=from_user, to_user=to_user)
+        sr.save()
 
 
 """def insert_comment(usr_dict, post_id, comment_id, comment_message, comment_from_uid, comment_from_name, comment_created_time,

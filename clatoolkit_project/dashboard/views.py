@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from django.shortcuts import render_to_response
+from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.http import HttpResponse
 from django.db import connection
 from utils import *
 from clatoolkit.models import OfflinePlatformAuthToken, UserProfile, OauthFlowTemp, UnitOffering, UnitOfferingMembership, DashboardReflection, LearningRecord, Classification, UserClassification, GroupMap, UserTrelloCourseBoardMap
+from dataintegration.models import PlatformConfig
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from functools import wraps
@@ -176,6 +178,21 @@ def myunits(request):
 
     # Get a users memberships to unit offerings
     memberships = UnitOfferingMembership.objects.filter(user=request.user, unit__enabled=True).select_related('unit')
+
+    # Get Plugin details
+    for i in range(0, len(memberships)):
+        platform_configs = memberships[i].unit.platformconfig_set.all()
+        if len(platform_configs) > 0:
+            memberships[i].plugins = []
+        for config in platform_configs:
+            platform = config.platform
+            groups = settings.DATAINTEGRATION_PLUGINS[platform].get_groups(memberships[i].unit)
+            memberships[i].plugins.append({
+                "label": platform,
+                "platform": platform,
+                "refresh": reverse("{}_refresh".format(platform)),
+                "groups": groups
+            })
 
     role = request.user.userprofile.role
 

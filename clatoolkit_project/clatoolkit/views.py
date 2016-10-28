@@ -1,5 +1,6 @@
 from django.shortcuts import render, render_to_response
 from django.shortcuts import redirect
+from django.core.urlresolvers import reverse
 
 from django.contrib.auth import authenticate, login
 from django.http import HttpResponseRedirect, HttpResponse, Http404
@@ -405,7 +406,18 @@ def update_offering(request, unit_id):
         else:
             form = CreateOfferingForm(instance=unit)
 
-            return render(request, "clatoolkit/createoffering.html", {'verb': 'Update', 'form': form})
+            all_plugins = settings.DATAINTEGRATION_PLUGINS
+            excluded = ["Blog", "Diigo", "Forum", "GitHub", "Twitter", "YouTube", "facebook", "trello"]
+
+            plugins = []
+            for plugin in all_plugins:
+                if plugin not in excluded:
+                    plugins.append({
+                        "a": reverse("{}_config".format(plugin)),
+                        "label": "Configure {}".format(plugin)
+                    })
+
+            return render(request, "clatoolkit/createoffering.html", {'verb': 'Update', 'form': form, 'unit': unit, "plugins":plugins})
     else:
         raise PermissionDenied()
 

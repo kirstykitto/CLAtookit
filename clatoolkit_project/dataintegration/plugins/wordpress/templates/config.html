@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WordPress Config</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="/static/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Plugin CSS -->
+    <link href="/static/wordpress/css/default.css" rel="stylesheet" />
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">WordPress Configuration for {{ unit.code }} {{ unit.name }}</h3>
+                </div>
+                <div class="panel-body">
+                    <h4>Connected WordPress Instances</h4>
+                </div>
+                <div class="list-group">
+                    {% for instance in instances %}
+                        <div class="list-group-item clearfix">
+                            <p class="pull-left btn-line-height">{{ instance }}</p>
+                            <div class="pull-right">
+                                <a href="{% url "WordPress_delete_instance" %}?instance={{ instance|urlencode }}&unit={{ unit.id }}" class="btn btn-default btn-danger" type="button">Delete</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <div class="list-group-item">
+                        <a href="{% url "update_offering" unit.id %}" class="btn btn-default btn-primary" type="button">Done</a>
+                        <a href="{% url "WordPress_connect" %}?unit={{ unit.id }}" class="pull-right btn btn-default btn-success">Connect new instance</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

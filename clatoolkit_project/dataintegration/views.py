@@ -5,7 +5,7 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render, render_to_response
 from authomatic import Authomatic
 from authomatic.adapters import DjangoAdapter
-from authomatic.providers import oauth2
+from authomatic.providers import oauth2, oauth1
 from dashboard.utils import *
 from django.template import RequestContext
 from dataintegration.tasks import *
@@ -19,6 +19,7 @@ from dashboard.utils import *
 from dataintegration.groupbuilder import *
 from dataintegration.core.processingpipeline import *
 from dataintegration.core.recipepermissions import *
+from dataintegration.plugins.wordpress.cladi_plugin import WordPressPlugin
 
 
 from rest_framework.decorators import api_view
@@ -448,4 +449,3 @@ def assigngroups(request):
     assign_groups_class(course_code)
     html_response.write('Groups Assigned')
     return html_response
-

@@ -38,7 +38,12 @@
                             {% endif %}
                         </div>
                     {% endfor %}
-
+                    {% if verb == "Update" %}
+                        {% for plugin in plugins %}
+                            <a href="{{ plugin.a }}?unit={{ unit.id }}">{{ plugin.label }}</a>
+                        {% endfor %}
+                    {% endif %}
+                    <br><br>
                     <button type="submit" class="btn btn-primary btn-lg btn-block">{{ verb }} offering</button>
                 </form>
             </div>

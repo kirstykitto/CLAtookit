@@ -12,6 +12,7 @@ class CLRecipe(object):
     PLATFORM_BLOG = 'Blog'
     PLATFORM_GITHUB = 'GitHub'
     PLATFORM_TRELLO = 'Trello'
+    PLATFORM_WORDPRESS = "WordPress"
 
     # Verbs
     VERB_CREATED = 'created'

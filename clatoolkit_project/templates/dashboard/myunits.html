@@ -97,7 +97,6 @@
                                     <a href="/dataintegration/refreshdiigo/?course_code={{ membership.unit.code }}&tags={{ membership.unit.diigo_tags|urlencode }}">Refresh
                                         Imported Data</a>
                                 {% endif %}
-                                <br/>
                                 {% if membership.unit.github_urls_as_list|length > 0 %}
                                     GitHub URLs: {% for url in membership.unit.github_urls_as_list %}
                                     <a href="{{ url }}" target="_blank">{{ url }}</a>  {% endfor %} [
@@ -116,6 +115,24 @@
                                     <a href="/dataintegration/refreshtrello/?course_code={{ membership.unit.code }}&course_id={{ membership.unit.id }}&boards={{ membership.unit.attached_trello_boards|urlencode }}&platform=trello">Refresh
                                         Imported Data</a>
                                     <div id="trello_import_sucess"></div>
+                                {% endif %}
+                                {% if membership.plugins %}
+                                    {% for plugin in membership.plugins %}
+                                        {{ plugin.label }}
+                                        {% for group in plugin.groups %}
+                                            {% if group.a %}
+                                                <a href="{{ group.a }}" target="_blank">{{ group.label }}</a>
+                                            {% else %}
+                                                <p>{{ group.label }}</p>
+                                            {% endif %}
+                                        {% endfor %}
+                                        [
+                                        <a href="/dashboard/?unit={{ membership.unit.id }}&platform={{ plugin.platform }}">Activity</a> |
+                                        <a href="/dashboard/ca_dashboard?unit={{ membership.unit.id }}&platform={{ plugin.platform }}">Content Analysis</a> |
+                                        <a href="/dashboard/sna_dashboard?unit={{ membership.unit.id }}&platform={{ plugin.platform }}">Social Network Analysis</a>
+                                        ]
+                                        <a href="{{ plugin.refresh }}?unit={{ membership.unit.id }}">Refresh Imported Data</a>
+                                    {% endfor %}
                                 {% endif %}
 
                             {% if unit.enable_coi_classifier %}
