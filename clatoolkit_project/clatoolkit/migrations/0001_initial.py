@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 import django_pgjson.fields
+import django.utils.timezone
 from django.conf import settings
 
 
@@ -79,7 +80,7 @@ class Migration(migrations.Migration):
                 ('platformparentid', models.CharField(max_length=5000, blank=True)),
                 ('parent_user_external', models.CharField(max_length=5000, null=True, blank=True)),
                 ('message', models.TextField(blank=True)),
-                ('datetimestamp', models.DateTimeField(auto_now_add=True, null=True)),
+                ('datetimestamp', models.DateTimeField(default=django.utils.timezone.now)),
                 ('senttolrs', models.CharField(max_length=5000, blank=True)),
                 ('parent_user', models.ForeignKey(related_name='parent_user', to=settings.AUTH_USER_MODEL, null=True)),
             ],
