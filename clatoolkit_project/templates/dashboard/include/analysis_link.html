@@ -1,0 +1,6 @@
+{% if unit.co_analysis %}
+	| <a href="/dashboard/ca_dashboard?unit={{ unit.id }}&platform={{ platform }}">Content Analysis</a>
+{% endif %}
+{% if unit.sn_analysis %}
+	| <a href="/dashboard/sna_dashboard?unit={{ unit.id }}&platform={{ platform }}">Social Network Analysis</a>
+{% endif %}

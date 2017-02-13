@@ -127,6 +127,11 @@ class UnitOffering(models.Model):
     # Unit end date
     end_date = models.DateField(auto_now=False, auto_now_add=False, blank=False)
 
+    # Content Analysis on/off
+    co_analysis = models.BooleanField(default=True, blank=False)
+    # Social Network Analysis on/off
+    sn_analysis = models.BooleanField(default=True, blank=False)
+
     # LRS Integration - to send users data to unit LRS
     #ll_endpoint = models.CharField(max_length=60, blank=True)
     #ll_username = models.CharField(max_length=60, blank=True)

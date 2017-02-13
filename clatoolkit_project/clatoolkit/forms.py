@@ -67,12 +67,17 @@ class CreateOfferingForm(forms.ModelForm):
         widget=forms.DateInput(attrs={'class': 'form-control'}), input_formats=['%d / %m / %Y'])
     end_date = forms.DateField(label='End Date',
         widget=forms.DateInput(attrs={'class': 'form-control'}), input_formats=['%d / %m / %Y'])
+    co_analysis = forms.BooleanField(label='Content Analysis Dashboard ON/OFF', required=False, initial={'co_analysis':True})
+    sn_analysis = forms.BooleanField(label='Social Network Analysis Dashboard ON/OFF', required=False, initial={'sn_analysis':True})
+    enable_coi_classifier = forms.BooleanField(label='Community of Inquiry Classifications Dashboard ON/OFF', 
+                                               required=False, initial={'enable_coi_classifier':True})
 
     class Meta:
         model = UnitOffering
-        fields = ("code", "name", "semester", "description", "twitter_hashtags", "google_groups",
-            "facebook_groups", "forum_urls", "youtube_channelIds", "diigo_tags", "blogmember_urls",
-            "github_urls", "attached_trello_boards", "provider", "start_date", "end_date")
+        fields = ("code", "name", "semester", "description", "twitter_hashtags", "google_groups", 
+            "facebook_groups", "forum_urls", "youtube_channelIds", "diigo_tags", "blogmember_urls", 
+            "github_urls", "attached_trello_boards", "provider", "start_date", "end_date",
+            "co_analysis", "sn_analysis", "enable_coi_classifier")
 
     def clean(self):
         code = self.cleaned_data.get('code')

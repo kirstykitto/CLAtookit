@@ -500,11 +500,11 @@ $(function() {
   $('#pageview_chart').highcharts('StockChart', {
       events: {
         redraw: function(event) {
-            console.log('==============> Date Range Changed <==============');
-            console.log(
-                Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', event.currentTarget.xAxis[0].min),
-                Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', event.currentTarget.xAxis[0].max)
-            );
+            // console.log('==============> Date Range Changed <==============');
+            // console.log(
+            //     Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', event.currentTarget.xAxis[0].min),
+            //     Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', event.currentTarget.xAxis[0].max)
+            // );
             start_date = Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', event.currentTarget.xAxis[0].min);
             end_date = Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', event.currentTarget.xAxis[0].max);
             // log the min and max of the y axis

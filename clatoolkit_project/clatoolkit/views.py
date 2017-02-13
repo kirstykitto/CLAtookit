@@ -514,6 +514,8 @@ def update_offering(request, unit_id):
                 unit.end_date = end_date
                 unit = form.save()
                 return render(request, 'clatoolkit/createoffering_success.html', {'verb': 'updated', 'unit': unit})
+            else:
+                raise Http404
 
         else:
             # Get LRS provider and set it

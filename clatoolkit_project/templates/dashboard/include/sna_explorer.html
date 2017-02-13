@@ -1,0 +1,25 @@
+{% if unit.sn_analysis %}
+<div class="col-lg-{{ cla_size }}">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <i class="fa fa-bar-chart-o fa-fw"></i> {{ title }} <span id="snaselectedrange"></span>
+        </div>
+        <!-- /.panel-heading -->
+        <div class="panel-body">
+            {% if show_alert %}
+            <div class="alert alert-warning">
+                Click on your node to view the messages you have posted. Click on a link (or relationship) to view the messages that were shared or commented on by another user.
+            </div>
+            {% endif %}
+            <div id="popup" title="Centrality">
+              <table class="table table-striped table-bordered table-hover" id="centrality-popup">
+              </table>
+            </div>
+            <div id="mynetwork" style="height: 350px;"></div>
+            <div id="relationships""></div>
+        </div>
+        <!-- /.panel-body -->
+    </div>
+    <!-- /.panel -->
+</div>
+{% endif %}

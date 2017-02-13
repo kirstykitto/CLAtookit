@@ -361,26 +361,6 @@ def snadashboard(request):
 
         return render_to_response('dashboard/snadashboard.html', context_dict, context)
 
-        # platform = request.GET.get('platform')
-
-        # title = "SNA Dashboard: {} {} (Platform: {})".format(unit.code, unit.name, platform)
-        # show_dashboardnav = True
-
-        # posts_timeline = get_timeseries('created', platform, unit)
-        # shares_timeline = get_timeseries('shared', platform, unit)
-        # likes_timeline = get_timeseries('liked', platform, unit)
-        # comments_timeline = get_timeseries('commented', platform, unit)
-
-        # sna_json = sna_buildjson(platform, unit, relationshipstoinclude="'mentioned','liked','shared','commented'")
-        # #sna_neighbours = getNeighbours(sna_json)
-        # centrality = get_centrality(sna_json)
-        # context_dict = {'show_dashboardnav': show_dashboardnav, 'unit': unit, 'platform': platform, 'title': title,
-        #                 'sna_json': sna_json, 'posts_timeline': posts_timeline, 'shares_timeline': shares_timeline,
-        #                 'likes_timeline': likes_timeline, 'comments_timeline': comments_timeline,
-        #                 'centrality': centrality}
-
-        # return render_to_response('dashboard/snadashboard.html', context_dict, context)
-
     else:
         raise PermissionDenied
 
@@ -441,26 +421,23 @@ def studentdashboard(request):
     activity_pie_series = get_verb_pie_data(unit, platform = platform, user = user)
     platformactivity_pie_series = get_platform_pie_data(unit, user = user)
 
-    # #print "SNA", datetime.datetime.now()
-    # if course_code == 'IFN614':
-    #     sna_json = sna_buildjson(platform, course_code,
-    #             start_date='15-06-2016', end_date='20-12-2016',
-    #             relationshipstoinclude = "'%s', '%s', '%s', '%s'" % (xapi_settings.VERB_MENTIONED, xapi_settings.VERB_LIKED, \
-    #                                                                  xapi_settings.VERB_SHARED, xapi_settings.VERB_COMMENTED))
-    # else:
-    #     # sna_json = sna_buildjson(platform, course_code, relationshipstoinclude="'mentioned','liked','shared','commented'")
-    sna_json = sna_buildjson(platform, unit,
-        relationshipstoinclude = "'%s', '%s', '%s', '%s'" % (xapi_settings.VERB_MENTIONED, xapi_settings.VERB_LIKED, \
-                                                             xapi_settings.VERB_SHARED, xapi_settings.VERB_COMMENTED))
-
-    # Centrality data
-    centrality = get_centrality(sna_json)
+    sna_json = None
+    centrality = None
+    if unit.sn_analysis:
+        sna_json = sna_buildjson(platform, unit, 
+            relationshipstoinclude = "'%s', '%s', '%s', '%s'" % (xapi_settings.VERB_MENTIONED, xapi_settings.VERB_LIKED, \
+                                                                 xapi_settings.VERB_SHARED, xapi_settings.VERB_COMMENTED))
+        # Centrality data
+        centrality = get_centrality(sna_json)
+        
     # Word cloud tags
     tags = get_wordcloud(platform, unit, user = user)
     # Sentiments pie chart
     sentiments = getClassifiedCounts(platform, unit, user = user, classifier="VaderSentiment")
     # Community of Inquiry
-    coi = getClassifiedCounts(platform, unit, user = user, classifier="nb_"+course_code+"_"+platform+".model")
+    coi = None
+    if unit.enable_coi_classifier:
+        coi = getClassifiedCounts(platform, unit, user = user, classifier="nb_"+course_code+"_"+platform+".model")
 
     context_dict = {
         'title': title, 'course_code':course_code, 'course_id': unit.id, 'platform':platform,
@@ -545,44 +522,24 @@ def mydashboard(request):
     tags = get_wordcloud(platform, unit, user = user)
     # Sentiments pie chart
     sentiments = getClassifiedCounts(platform, unit, user = user, classifier="VaderSentiment")
-    # Community of Inquiry
-    coi = getClassifiedCounts(platform, unit, user = user, classifier="nb_"+course_code+"_"+platform+".model")
     # Dashboard reflection
     reflections = DashboardReflection.objects.filter(user = user, unit = unit)
-    # SNA explorer data
-    sna_json = sna_buildjson(platform, unit,
-        # relationshipstoinclude="'mentioned','liked','shared','commented'")
-        relationshipstoinclude = "'%s', '%s', '%s', '%s'" % (xapi_settings.VERB_MENTIONED, xapi_settings.VERB_LIKED, \
-                                                             xapi_settings.VERB_SHARED, xapi_settings.VERB_COMMENTED))
+    
+    # SNA explorer data 
+    sna_json = None
+    centrality = None
+    if unit.sn_analysis:
+        sna_json = sna_buildjson(platform, unit, 
+            # relationshipstoinclude="'mentioned','liked','shared','commented'")
+            relationshipstoinclude = "'%s', '%s', '%s', '%s'" % (xapi_settings.VERB_MENTIONED, xapi_settings.VERB_LIKED, \
+                                                                 xapi_settings.VERB_SHARED, xapi_settings.VERB_COMMENTED))
+        # Centrality data
+        centrality = get_centrality(sna_json)
 
-    # Centrality data
-    centrality = get_centrality(sna_json)
-
-    # TODO: Fix get_timeseries() method
-    # posts_timeline = get_timeseries('created', platform, course_code, username=username)
-    # shares_timeline = get_timeseries('shared', platform, course_code, username=username)
-    # likes_timeline = get_timeseries('liked', platform, course_code, username=username)
-    # comments_timeline = get_timeseries('commented', platform, course_code, username=username)
-
-    # show_allplatforms_widgets = False
-    # twitter_timeline = ""
-    # facebook_timeline = ""
-    # forum_timeline = ""
-    # youtube_timeline = ""
-    # diigo_timeline = ""
-    # blog_timeline = ""
-
-    # platformclause = ""
-    # if platform != "all":
-    #     platformclause = " AND clatoolkit_learningrecord.platform='%s'" % (platform)
-    # else:
-    #     twitter_timeline = get_timeseries_byplatform("Twitter", course_code, username)
-    #     facebook_timeline = get_timeseries_byplatform("Facebook", course_code, username)
-    #     forum_timeline = get_timeseries_byplatform("Forum", course_code, username)
-    #     youtube_timeline = get_timeseries_byplatform("YouTube", course_code, username)
-    #     diigo_timeline = get_timeseries_byplatform("Diigo", course_code, username)
-    #     blog_timeline = get_timeseries_byplatform("Blog", course_code, username)
-    #     show_allplatforms_widgets = True
+    # Community of Inquiry
+    coi = None
+    if unit.enable_coi_classifier:
+        coi = getClassifiedCounts(platform, unit, user = user, classifier="nb_"+course_code+"_"+platform+".model")
 
     context_dict = {
         'title': title, 'course_code':course_code, 'course_id': unit.id, 'platform':platform,
