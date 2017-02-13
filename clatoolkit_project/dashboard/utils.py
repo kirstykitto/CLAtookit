@@ -9,7 +9,7 @@ import copy
 import funcy as fp
 import numpy as np
 import subprocess
-import igraph
+import jgraph
 from pprint import pprint
 from collections import OrderedDict
 from django.conf import settings

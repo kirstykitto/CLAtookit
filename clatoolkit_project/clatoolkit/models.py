@@ -5,6 +5,7 @@ from django_pgjson.fields import JsonField
 from django.core.exceptions import ObjectDoesNotExist
 from xapi.statement.xapi_settings import xapi_settings
 from xapi.models import ClientApp
+#from dashboard.models import al2_classifier
 
 class UserProfile(models.Model):
     '''
@@ -47,7 +48,7 @@ class UserProfile(models.Model):
 
     #blog userName
     blog_id = models.CharField(max_length=255, blank=True)
-    
+
     #GitHub user account
     github_account_name = models.CharField(max_length=255, blank=True)
 
@@ -87,6 +88,11 @@ class UnitOffering(models.Model):
     enable_coi_classifier = models.BooleanField(default=False)
     #enable_group_coi_classifier = models.BooleanField(default=False)
 
+    #al_classifiers = models.CharField(max_length=255, blank=True)
+
+    #def get_al_classifiers():
+    #    return self.al_classifiers.split(',')
+
     # Twitter Unit Integration Requirements
     twitter_hashtags = models.TextField(blank=False,verbose_name="Twitter Hashtags")
 
@@ -120,7 +126,7 @@ class UnitOffering(models.Model):
     start_date = models.DateField(auto_now=False, auto_now_add=False, blank=False)
     # Unit end date
     end_date = models.DateField(auto_now=False, auto_now_add=False, blank=False)
- 
+
     # LRS Integration - to send users data to unit LRS
     #ll_endpoint = models.CharField(max_length=60, blank=True)
     #ll_username = models.CharField(max_length=60, blank=True)
@@ -307,7 +313,7 @@ class Classification(models.Model):
     classification = models.CharField(max_length=1000, blank=False)
     classifier = models.CharField(max_length=1000, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
-#    classifier_model = models.CharField(max_length=1000, blank=False)
+    #classifier_model = models.CharField(max_length=1000, blank=False)
 
 
 class UserClassification(models.Model):

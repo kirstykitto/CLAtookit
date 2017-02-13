@@ -6,8 +6,8 @@ from clatoolkit.models import UserProfile, UnitOffering, LearningRecord, SocialR
 import re
 
 class UserForm(forms.ModelForm):
-    first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    last_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    first_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    last_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     email = forms.CharField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
@@ -35,15 +35,15 @@ class RegisterClientAppForm(forms.ModelForm):
     app_name = forms.CharField(label='Client application name registered on your LRS', widget=forms.TextInput(attrs={'class': 'form-control'}))
     domain = forms.CharField(label='Domain (e.g. my.lrsdomain.com)', widget=forms.TextInput(attrs={'class': 'form-control'}))
     port = forms.IntegerField(label='Port number', widget=forms.TextInput(attrs={'class': 'form-control'}))
-    auth_request_path = forms.CharField(label='Auth request path (e.g. /OAuth/initiate)', 
+    auth_request_path = forms.CharField(label='Auth request path (e.g. /OAuth/initiate)',
         widget=forms.TextInput(attrs={'class': 'form-control'}))
-    access_token_path = forms.CharField(label='Access token path (e.g. /OAuth/token)', 
+    access_token_path = forms.CharField(label='Access token path (e.g. /OAuth/token)',
         widget=forms.TextInput(attrs={'class': 'form-control'}))
-    authorization_path = forms.CharField(label='Authorization path (e.g. /OAuth/authorize)', 
+    authorization_path = forms.CharField(label='Authorization path (e.g. /OAuth/authorize)',
         widget=forms.TextInput(attrs={'class': 'form-control'}))
-    xapi_statement_path = forms.CharField(label='xAPI statement path (e.g. /xapi/statements)', 
+    xapi_statement_path = forms.CharField(label='xAPI statement path (e.g. /xapi/statements)',
         widget=forms.TextInput(attrs={'class': 'form-control'}))
-    reg_lrs_account_path = forms.CharField(label='LRS account registeration path (e.g. /regclatoolkitu/)', 
+    reg_lrs_account_path = forms.CharField(label='LRS account registeration path (e.g. /regclatoolkitu/)',
         widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     protocol_choice = (
@@ -54,25 +54,24 @@ class RegisterClientAppForm(forms.ModelForm):
 
     class Meta:
         model = ClientApp
-        fields = ("provider", "app_name", "i", "s", "protocol", "domain", "port", 
-                    "auth_request_path", "access_token_path", "authorization_path", 
+        fields = ("provider", "app_name", "i", "s", "protocol", "domain", "port",
+                    "auth_request_path", "access_token_path", "authorization_path",
                     "xapi_statement_path", "reg_lrs_account_path")
-
 
 class CreateOfferingForm(forms.ModelForm):
     code = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     semester = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     provider = forms.CharField(label='LRS', widget=forms.TextInput(attrs={'class': 'form-control'}))
-    start_date = forms.DateField(label='Start Date', 
+    start_date = forms.DateField(label='Start Date',
         widget=forms.DateInput(attrs={'class': 'form-control'}), input_formats=['%d / %m / %Y'])
-    end_date = forms.DateField(label='End Date', 
+    end_date = forms.DateField(label='End Date',
         widget=forms.DateInput(attrs={'class': 'form-control'}), input_formats=['%d / %m / %Y'])
 
     class Meta:
         model = UnitOffering
-        fields = ("code", "name", "semester", "description", "twitter_hashtags", "google_groups", 
-            "facebook_groups", "forum_urls", "youtube_channelIds", "diigo_tags", "blogmember_urls", 
+        fields = ("code", "name", "semester", "description", "twitter_hashtags", "google_groups",
+            "facebook_groups", "forum_urls", "youtube_channelIds", "diigo_tags", "blogmember_urls",
             "github_urls", "attached_trello_boards", "provider", "start_date", "end_date")
 
     def clean(self):
@@ -86,7 +85,6 @@ class CreateOfferingForm(forms.ModelForm):
             self._errors['start_date'] = self.error_class(['Start date must be earlier than end date.'])
 
         return self.cleaned_data
-
 
 class SocialMediaUpdateForm(forms.ModelForm):
     fb_id = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -113,7 +111,6 @@ class SocialMediaUpdateForm(forms.ModelForm):
         model = UserProfile
         fields = ('fb_id', 'twitter_id', 'forum_id', 'google_account_name', 'diigo_username', 'blog_id', 'github_account_name', 'trello_account_name')
 
-
 class UserProfileForm(forms.ModelForm):
     fb_id = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     twitter_id = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -125,9 +122,9 @@ class UserProfileForm(forms.ModelForm):
     trello_account_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     def clean(self):
-        if not ((self.cleaned_data.get('fb_id')) 
-            or (self.cleaned_data.get('twitter_id')) or (self.cleaned_data.get('forum_id')) 
-            or (self.cleaned_data.get('blog_id')) or (self.cleaned_data.get('google_account_name')) 
+        if not ((self.cleaned_data.get('fb_id'))
+            or (self.cleaned_data.get('twitter_id')) or (self.cleaned_data.get('forum_id'))
+            or (self.cleaned_data.get('blog_id')) or (self.cleaned_data.get('google_account_name'))
             or (self.cleaned_data.get('diigo_username')) or (self.cleaned_data.get('github_account_name'))
             or (self.cleaned_data.get('trello_account_name'))
             ):

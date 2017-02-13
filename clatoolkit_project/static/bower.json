@@ -1,0 +1,34 @@
+{
+  "name": "CLAToolkit",
+  "homepage": "https://github.com/kirstykitto/CLAtoolkit",
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "3.3.7",
+    "bootstrap-social": "~4.8.0",
+    "datatables": "~1.10.13",
+    "datatables-plugins": "~1.0.1",
+    "datatables-responsive": "~1.0.3",
+    "flot.tooltip": "~0.8.4",
+    "flot": "~0.8.3",
+    "font-awesome": "4.2.0",
+    "holderjs": "~2.4.1",
+    "metisMenu": "~1.1.3",
+    "morrisjs": "~0.5.1",
+    "bower": "*",
+    "install": "^1.0.4",
+    "vue": "^2.1.10",
+    "vue-resource": "^1.2.0",
+    "hello": "^1.14.0",
+    "raphael": "2.1.4"
+  }
+}

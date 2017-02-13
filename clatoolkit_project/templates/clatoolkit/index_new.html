@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+{% load settings_value %}
+{% load accesslog %}
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-COMPATIBLE" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Connected Learning Analytics Toolkit</title>
+
+
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" type="text/css" href="{% static 'bower_components/bootstrap/dist/css/bootstrap.min.css'%}">
+
+    <!-- Main Style -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/animate.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/lightbox.css' %}">
+
+    <!-- Font-Awesome Icons -->
+    <link rel="stylesheet" type="text/css" href="{% static 'bower_components/font-awesome/css/font-awesome.min.css' %}">
+
+
+    <!-- jQuery Load -->
+    <script src="{% static 'js/jquery-2.1.4.min.js' %}"></script>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+    <body data-spy="scroll" data-offset="20" data-target="#navbar">
+    <!-- Nav Menu Section -->
+    <div class="logo-menu">
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation" data-spy="affix" data-offset-top="50">
+      <div class="container">
+        <div class="navbar-header col-md-3">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#home"><i class="fa fa-bar-chart-o"></i> CLAToolkit</a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="navbar">
+                            <ul class="nav navbar-nav col-md-9 pull-right">
+                            <li class="active"><a href="#hero-area"><i class="fa fa-home"></i> Home</a></li>
+
+                            <li><a href="https://github.com/kirstykitto/CLAtoolkit" target="_blank"><i class="fa fa-puzzle-piece"></i> Github</a></li>
+
+                            </ul>
+        </div>
+      </div>
+    </nav>
+    </div>
+
+
+
+<section id="hero-area">
+<div class="container">
+    <div class="row">
+<div class="col-md-6">
+        <h1 class="title">The CLAToolkit</h1>
+        <h2 class="subtitle">Connected Learning Analytics Toolkit</h2>
+
+        <div class="col-md-6 col-sm-6 col-xs-6 cla_sna-wrap">
+        <img class="col-md-12 col-sm-12 col-xs-12 animated fadeInLeft cla_sna" src="{% static 'img/cla_sna.png' %}" alt="">
+        </div>
+        <h4 class="text-center cla-heading">Track your Learning <br/> and Teaching from <br/> beyond the LMS</h4>
+        <div class="col-md-6 col-sm-12 col-xs-12 animated fadeInRight delay-0-5">
+
+
+            <h6>Currently Importing learning and activities from:</h6>
+            <ul>
+                <li>Facebook</li>
+                <li>Twitter</li>
+                <li>YouTube</li>
+                <li>GitHub</li>
+                <li>Trello</li>
+            </ul>
+
+        </div>
+</div>
+        <div class="col-md-6 col-sm-12 col-xs-12">
+            <div id="main-form" class="col-md-12 col-sm-12 col-xs-12" style="margin-top: 4em;">
+                <div class="col-lg-offset-2 col-sm-12 col-xs-12"><button class="login-button">Existing Users</button><button class="login-button">Register Interest</button></div>
+
+                <form id="login-interest-form" method="post">
+
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                        <input id="username" type="text" class="form-control" name="username" placeholder="Username">
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                        <input id="password" type="password" class="form-control" name="password" placeholder="Password">
+                    </div>
+                    <button class="btn btn-common center-block" type="submit">Log In</button>
+                </form>
+
+                <hr />
+
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+</section>
+
+
+    </body>
+    </html>

@@ -23,7 +23,7 @@
                             <div>
                                 <div class="alert alert-danger" role="alert">
                                     <h4 class="no-token">Give permission</h4>
-                                    <p><a href="/xapi/get_lrs_access_token?provider_id={{ membership.unit.lrs_provider_id }}">Click here</a> to allow the CLA toolkit to import your social media content to LRS.</p>
+                                    <p><a href="/xapi/get_lrs_access_token?provider_id={{ membership.unit.lrs_provider_id }}&clau={{request.user.id}}">Click here</a> to allow the CLA toolkit to import your social media content to LRS.</p>
                                 </div>
                             </div>
                             {% endif %}

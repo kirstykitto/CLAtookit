@@ -23,6 +23,7 @@ from .forms import SocialMediaUpdateForm, LearningRecordFilter, SocialRelationsh
 
 
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -39,6 +40,7 @@ import binascii
 
 def home(request):
     context = RequestContext(request)
+
     return render_to_response('clatoolkit/home.html', {}, context)
 
 
@@ -51,7 +53,7 @@ def userlogin(request):
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
-        next_page = request.POST['next_page']
+        next_page = request.POST.get('next_page', '/')
 
         user = authenticate(username=username, password=password)
 
@@ -78,7 +80,7 @@ def userlogin(request):
         return redirect(next_page)
 
     else:
-        return render_to_response('clatoolkit/login.html', {"message": message, "next_page": next_page}, context)
+        return render_to_response('clatoolkit/index_new.html', {"message": message, "next_page": next_page}, context)
 
 
 #Unit management integration for staff - 13/05/16
@@ -197,10 +199,34 @@ def register(request, unit_id):
     if request.method == 'POST':
         # Attempt to grab information from the raw form information.
         # Note that we make use of both UserForm and UserProfileForm.
-        user_form = UserForm(data=request.POST)
-        profile_form = UserProfileForm(data=request.POST)
+
+        # REQUIRED FIELDS:
+        # - username
+        # - email
+        # - password
+        # - social IDs
+
+        # TODO: Will need new forms (maybe with data filled from vue)
+        # TODO: Forms become meh with vue
+
+        data = json.loads(request.body)
+
+        # print 'Got request data %s' % data
+
+        user_form = UserForm(data=data['user_account'])
+        profile_form = UserProfileForm(data=data['user_profile'])
+
+        # print 'did the user form work? %s' % user_form.is_valid()
+
+        # print user_form.errors
+
+        # print 'did the user profile form work? %s' % profile_form.is_valid()
+
+        # print profile_form.errors
 
         # If the two forms are valid...
+        # TODO: Might do form validation on the client-side
+
         if user_form.is_valid() and profile_form.is_valid():
             # Generate LRS Account
             user = user_form.cleaned_data['username']
@@ -227,7 +253,7 @@ def register(request, unit_id):
 
             if not (str(r.status_code) == '200' and r.content == 'success'):
                 print 'Error: LRS account could not be created.'
-                return HttpResponse(r.content)
+                return HttpResponse(r.content, status=503)
 
             ### When an LRS account has been created, create the toolkit account.
             # Save the user's form data to the database.
@@ -255,7 +281,10 @@ def register(request, unit_id):
             u = authenticate(username=user_form.cleaned_data["username"], password=user_form.cleaned_data["password"])
             login(request, u)
 
-            return HttpResponseRedirect("/")
+            return HttpResponse("/")
+        else:
+            return JsonResponse({'errors': {'user_form': user_form.errors, 'profile_form': profile_form.errors}}, status=400)
+        # return HttpResponse("HELLO")
 
     # Not a HTTP POST, so we render our form using two ModelForm instances.
     # These forms will be blank, ready for user input.
@@ -265,7 +294,7 @@ def register(request, unit_id):
 
     # Render the template depending on the context.
     return render_to_response(
-        'clatoolkit/register.html',
+        'clatoolkit/register_djano.html',
             {'user_form': user_form, 'profile_form': profile_form, 'registered': registered, "course": unit, "req_platforms": platforms, "user": u}, context)
 
 
@@ -412,7 +441,7 @@ def create_offering(request):
             provider = post_data.pop("provider")[0]
             app = ClientApp.objects.get(provider = provider)
             unit.lrs_provider = app
-            # Start & end date 
+            # Start & end date
             start_date = post_data.pop("start_date")[0]
             end_date = post_data.pop("end_date")[0]
 
@@ -423,16 +452,16 @@ def create_offering(request):
             # Create a Date object
             start_date = dt.strptime(start_date, client_format)
             end_date = dt.strptime(end_date, client_format)
-            # Get formatted date string 
+            # Get formatted date string
             start_date = start_date.strftime(database_format)
             end_date = end_date.strftime(database_format)
             # Create a Date object whose format suits database column format
             start_date = dt.strptime(start_date, database_format)
             end_date = dt.strptime(end_date, database_format)
-            
+
             unit.start_date = start_date
             unit.end_date = end_date
-            
+
             unit.save()
 
             m = UnitOfferingMembership(user=request.user, unit=unit, admin=True)
@@ -463,7 +492,7 @@ def update_offering(request, unit_id):
                 provider = post_data.pop("provider")[0]
                 app = ClientApp.objects.get(provider = provider)
                 unit.lrs_provider = app
-                # Start & end date 
+                # Start & end date
                 start_date = post_data.pop("start_date")[0]
                 end_date = post_data.pop("end_date")[0]
 
@@ -474,13 +503,13 @@ def update_offering(request, unit_id):
                 # Create a Date object
                 start_date = dt.strptime(start_date, client_format)
                 end_date = dt.strptime(end_date, client_format)
-                # Get formatted date string 
+                # Get formatted date string
                 start_date = start_date.strftime(database_format)
                 end_date = end_date.strftime(database_format)
                 # Create a Date object whose format suits database column format
                 start_date = dt.strptime(start_date, database_format)
                 end_date = dt.strptime(end_date, database_format)
-                
+
                 unit.start_date = start_date
                 unit.end_date = end_date
                 unit = form.save()
@@ -517,12 +546,12 @@ def registerclientapp(request):
             app = form.save(commit=False)
             app.protocol = form.cleaned_data["protocol"]
             app.save()
-            return render(request, 'clatoolkit/registerclientapp.html', 
+            return render(request, 'clatoolkit/registerclientapp.html',
                 {'registered': True, 'verb': 'registered', 'form': None})
     else:
         form = RegisterClientAppForm()
 
-    return render(request, 'clatoolkit/registerclientapp.html', 
+    return render(request, 'clatoolkit/registerclientapp.html',
         {'registered': False, 'verb': 'Register', 'form': form})
 
 
@@ -549,7 +578,7 @@ def updateclientapp(request):
         except ClientApp.DoesNotExist:
             return HttpResponseServerError('Error: Provider id not found')
 
-        return render(request, 'clatoolkit/registerclientapp.html', 
+        return render(request, 'clatoolkit/registerclientapp.html',
             {'registered': False, 'verb': 'Update', 'form': form})
 
 
@@ -637,7 +666,7 @@ class SNARESTView(DefaultsMixin, APIView):
         # Any URL parameters get passed in **kw
         #myClass = CalcClass(get_arg1, get_arg2, *args, **kw)
         #print sna_buildjson(platform, course_code)
-        sna_data = sna_buildjson(platform, unit, username=username, start_date=start_date, 
+        sna_data = sna_buildjson(platform, unit, username=username, start_date=start_date,
                                  end_date=end_date, relationshipstoinclude=relationshipstoinclude)
         result = json.loads(sna_data)
         result["neighbours"] = json.loads(getNeighbours(json.dumps(result)))

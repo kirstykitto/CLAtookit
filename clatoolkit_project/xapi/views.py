@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import redirect
 
 from models import OAuthTempRequestToken, UserAccessToken_LRS, ClientApp
 from oauth_consumer.operative import LRS_Auth
@@ -18,7 +19,7 @@ from xapi.statement.xapi_filter import xapi_filter
 def get_lrs_access_token(request):
     provider_id = request.GET.get('provider_id')
     auth = LRS_Auth(provider_id = provider_id, callback = Utility.get_site_url(request))
-    return HttpResponseRedirect(auth.authenticate(request.user.id))
+    return redirect(auth.authenticate(request.user.id))
 
 
 # Create your views here.
@@ -96,7 +97,9 @@ def lrs_oauth_callback(request):
     import os
     import urlparse
 
-    user_id = request.user.id
+    user_id = request.GET.get('user', None)
+
+    print 'USERID: %s' % (user_id)
     user = User.objects.get(id=user_id)
 
     status = request.GET.get('status')

@@ -35,22 +35,31 @@ if os.environ.get("ADMINS"):
 else:
     ADMINS = None
 
-if ADMINS:
+#if ADMINS:
+ #   EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # During development only
+    #EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#    SERVER_EMAIL = os.environ.get("SERVER_EMAIL")
 
-    SERVER_EMAIL = os.environ.get("SERVER_EMAIL")
+ #   EMAIL_HOST = os.environ.get("EMAIL_HOST")
+   # EMAIL_PORT = os.environ.get("EMAIL_PORT")
+  #  EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+    #EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
-    EMAIL_HOST = os.environ.get("EMAIL_HOST")
-    EMAIL_PORT = os.environ.get("EMAIL_PORT")
-    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+    #if os.environ.get("EMAIL_USE_TLS") == '1':
+     #   EMAIL_USE_TLS = True
 
-    if os.environ.get("EMAIL_USE_TLS") == '1':
-        EMAIL_USE_TLS = True
-
-    if os.environ.get("EMAIL_USE_SSL") == '1':
-        EMAIL_USE_SSL = True
+    #if os.environ.get("EMAIL_USE_SSL") == '1':
+     #   EMAIL_USE_SSL = True
+ALLOWED_HOSTS = []
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'test@gmail.com'
+SERVER_EMAIL = 'test@gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'sebastiancross0@gmail.com'
+EMAIL_HOST_PASSWORD = 'Deathnote2006'
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # During development only
 
 # Application definition
 

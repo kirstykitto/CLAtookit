@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+{% load settings_value %}
+{% load accesslog %}
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-COMPATIBLE" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Connected Learning Analytics Toolkit</title>
+
+
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" type="text/css" href="{% static 'bower_components/bootstrap/dist/css/bootstrap.min.css'%}">
+
+    <!-- Main Style -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/animate.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/lightbox.css' %}">
+
+    <!-- Font-Awesome Icons -->
+    <link rel="stylesheet" type="text/css" href="{% static 'bower_components/font-awesome/css/font-awesome.min.css' %}">
+
+
+    <!-- jQuery Load -->
+    <script src="{% static 'js/jquery-2.1.4.min.js' %}"></script>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body data-spy="scroll" data-offset="20" data-target="#navbar">
+<!-- Navigation -->
+<div class="logo-menu">
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation" data-spy="affix" data-offset-top="50">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header col-md-3">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/"><i class="fa fa-bar-chart-o"></i> CLAToolkit</a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="navbar">
+                <span></span>
+                <ul class="nav navbar-nav col-md-9 pull-right">
+                    <li class="active"><a href="#hero-area"><i class="fa fa-list"></i> CLAToolkit Class Registration</a></li>
+                <!--    <li><a href="#services"><i class="fa fa-cogs"></i> About</a></li>
+                    <li><a href="#portfolio"><i class="fa fa-flask"></i> Projects</a></li>
+                    <li><a href="#clients"><i class="fa fa-puzzle-piece"></i> Github</a></li>
+                    <li><a href="#contact"><i class="fa fa-envelope"></i> Contact</a></li>
+                </ul>-->
+                    </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+<!-- Nav Menu Section End -->
+
+<!-- Hero Area Section -->
+
+<section id="hero-area">
+    <div class="container">
+        <div class="row">
+
+            <div class="col-md-6">
+                <h3 class="subtitle">Enabling connected learning via open source analytics in social media (QUT Ethics Approval Number: 1500000398)</h3>
+                <!--<h1 class="title">The CLAToolkit</h1>-->
+
+                <div class="col-md-12 col-sm-6 col-xs-12 animated fadeInRight delay-0-5">
+                    <div id="main-form" class="col-md-12">
+                        <div class="col-md-12"><h2>Register</h2><hr></div>
+                        {% if registered %}
+                            <strong>Thank you for registering</strong>
+                            <p>
+                                <a href="/">You can login by going to https://clatoolkit.beyondlms.org</a>
+                            </p>
+                        {% else %}
+                        <h4>Unit: {{course.name}}</h4>
+                        <p>Your class data will be imported from the following locations:</p>
+
+                        <ul>
+                            {% if course.twitter_hashtags_as_list|length > 0 %}
+                            <!-- Twitter hastags -->
+                            <li>Twitter Hashtags:
+                                {% for hashtag in course.twitter_hashtags_as_list %}
+                                    <a href="https://twitter.com/hashtag/{{hashtag}}" target="_blank">
+                                        #{{hashtag}}
+                                    </a>
+                                {% endfor %}
+                            </li>
+                            {% endif %}
+                            {% if course.facebook_groups_as_list|length > 0 %}
+                            <!-- Facebook Groups -->
+                            <li>
+                                Facebook Groups:
+                                {% for grp in course.facebook_groups_as_list %}
+                                    <a href="https://www.facebook.com/groups/{{grp}}" target="_blank">
+                                        {{grp}}
+                                    </a>
+                                {% endfor %}
+                            </li>
+                            {% endif %}
+                            {% if course.youtube_channelIds_as_list|length > 0 %}
+                            <!-- Youtube Channels -->
+                            <li>
+                                YouTube Channels:
+                                {% for channel in course.youtube_channelIds_as_list %}
+                                <a href="https://www.youtube.com/channel/{{ channel }}"
+                                   target="_blank">{{ channel }}</a>
+                                {% endfor %}
+                            </li>
+                            {% endif %}
+                        </ul>
+
+                        {% if user %}
+                        <!-- Already registered/logged in user -->
+                        <br>
+                        <div class="btn-group btn-group-justified" role="group">
+                            <a class="btn btn-primary btn-lg btn-block" style="color:white;text-decoration: none" href="{% url "auth_logout_next" request.path %}">Create new account</a>
+                            <a class="btn btn-success btn-lg btn-block" style="color:white;text-decoration: none" href="{% url "register_existing" course.id %}">Continue as {{ user.first_name }}</a>
+                        </div>
+                        {% else %}
+
+                        <form id="register-form" v-on:submit="submit($event)" class="col-md-offset-2 col-sm-offset-2 col-xs-offset-1">
+
+                            {% csrf_token %}
+
+                            <div class="text-center input-group">
+                                <span v-if="form_errors.user_form.username">{% verbatim %} {{form_errors.user_form.username[0]}} {% endverbatim %}</span>
+                                <span class=""><i class="glyphicon glyphicon-user"></i> <label for="username">Username</label></span>
+                                <input id="username" v-model="account.username" type="text" class="form-control" name="username" placeholder="Username for CLAToolkit">
+                            </div>
+
+                            <div class="text-center input-group">
+                                <span v-if="form_errors.user_form.email">{% verbatim %} {{form_errors.user_form.email[0]}} {% endverbatim %}</span>
+                                <span v-if="lrs_error">{% verbatim %} {{lrs_error}} {% endverbatim %}</span>
+                                <span class=""><i class="glyphicon glyphicon-envelope"></i> <label for="email">Email</label></span>
+                                <input id="email" v-model="account.email" type="email" class="form-control" name="email" placeholder="Password">
+                            </div>
+
+                            <div class="text-center input-group">
+                                <span v-if="form_errors.user_form.password">{% verbatim %} {{ form_errors.user_form.password[0] }} {% endverbatim %}</span>
+                                <span class=""><i class="glyphicon glyphicon-lock"></i> <label for="password">Password</label></span>
+                                <input id="password" v-model="account.password" type="password" class="form-control" name="password" placeholder="Password">
+                            </div>
+
+                            <div class="text-center input-group">
+
+                                <span class=""><i class="glyphicon glyphicon-paperclip"></i> <label for="unit-enrollment">Unit Enrollment</label></span>
+                                <input id="unit-enrollment" type="text" readonly class="form-control" name="unit-enrollment" placeholder="{{course.code}}">
+                            </div>
+                            <div class="col-md-offset-5 col-sm-offset-4 col-xs-offset-6 dots"></div>
+
+                            <div class="text-center input-group col-md-10">
+
+                                <p><span class=""><i class="glyphicon glyphicon-share"></i>  Attach Social Media (at least 1 is required)</span></p>
+                                {% verbatim %}
+                                  <div v-if="form_errors.profile_form" v-for="error in form_errors.profile_form">
+                                    {{error}}
+                                  </div>
+                                {% endverbatim %}
+                                <div id="add_social" class="col-md-12">
+                                    {% if 'facebook' in req_platforms %}
+                                    {% verbatim %}
+                                    <a v-show="!fb" v-on:click="add_social('facebook')" type="button"><i class="fa fa-3x fa-facebook-square" aria-hidden="true"></i></a>
+                                    {% endverbatim %}
+                                    {% endif %}
+                                    {% if 'twitter' in req_platforms %}
+                                    {% verbatim %}
+                                    <a><i v-show="!tw" v-on:click="add_social('twitter')" class="fa fa-3x fa-twitter-square" aria-hidden="true"></i></a>
+                                    {% endverbatim %}
+                                    {% endif %}
+                                    {% if 'youtube' in req_platforms %}
+                                    {% verbatim %}
+                                    <a><i v-show="!yt" v-on:click="add_social('youtube')" class="fa fa-3x fa-youtube-square" aria-hidden="true"></i></a>
+                                    {% endverbatim %}
+                                    {% endif %}
+                                    {% if 'trello' in req_platforms %}
+                                    {% verbatim %}
+                                    <a v-show="!tr" v-on:click="add_social('trello')"><i class="fa fa-3x fa-trello" aria-hidden="true"></i></a>
+                                    {% endverbatim %}
+                                    {% endif %}
+                                    {% if 'github' in req_platforms %}
+                                    {% verbatim %}
+                                    <a v-on:click="add_social('github')"><i class="fa fa-3x fa-github-square" aria-hidden="true"></i></a>
+                                    {% endverbatim %}
+                                    {% endif %}
+                                </div>
+                            {% verbatim %}
+                                <div class="social_wrapper col-md-12" v-for="social_account in social_accounts">
+                                    <span v-if="social_account.platform" class="" ><i v-bind:class="'fa fa-' + social_account.platform + '-square'"></i> <label style="margin-top: 1em;width: 11em;" v-bind:for="social_account.platform + '_name'">
+                                        <span v-if="social_account.platform == 'twitter'">Enter</span> {{social_account.platform}} Account <span v-if="social_account.platform == 'twitter'"> ID:</span>
+                                    </label></span>
+                                    <input  v-if="social_account.name" v-bind:id="social_account.platform + '_name'" type="text" class="form-control"
+                                            v-bind:style="'background: white url('+ social_account.thumbnail +') no-repeat scroll 4px; padding-left: 40px; width:90%;'" v-bind:name="social_account.platform + '_name'" v-model="social_account.name">
+                                </div>
+                            </div>
+                            <!-- v-on:input="check_name(social_account.platform)" -->
+                            <!--<div class="input-group">
+                                <span class="input-group-addon">Text</span>
+                                <input id="msg" type="text" class="form-control" name="msg" placeholder="Additional Info">
+                            </div>-->
+                            <button class="btn btn-common center-block" type="submit">Log In</button>
+                            {% endverbatim %}
+                        </form>
+                        {% endif %}
+                        {% endif %}
+
+                    <!--<a href="#" class="btn btn-common btn-lg">Donload Now!</a>
+                    <a href="#" class="btn btn-primary btn-lg">Learn More</a>-->
+                </div>
+            </div>
+        </div>
+            <!-- Project Info Sheet Augmented to Accordion -->
+            <div class="col-md-6" >
+                <p><b>You are invited to participate in this project because you are enrolled in a subject where you undertake learning activities using social media.</b>
+                    Agreeing to participate will lead to the creation of an account in a learning record store for you. You will then associate various social media accounts with that account (as your instructor suggests and you choose). This will allow for data to be gathered from your participation in learning activities using social media that you undertake in your class. You will then be able to see data and reports about your own engagement in the learning activities.
+                    This will give you information on your learning that you can use to gain a greater self-awareness of your learning.<hr /></p>
+
+                <div class="panel-group project-desc" id="accordion" role="tablist" aria-multiselectable="true">
+                    <div class="panel panel-default">
+                        <div class="panel-heading" role="tab" id="headingOne">
+                            <h4 class="panel-title">
+                                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    Project Description
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                            <div class="panel-body">
+                                <p>This project is being undertaken as part of a project for the Office for Learning and Teaching.</p>
+
+                                <p>The purpose of this project is to design and evaluate new tools that will give you access to data and reports that describe your engagement in learning activities using social media.</p>
+
+                                <p>Your participation in this project is entirely voluntary. If you do agree to participate you can withdraw from the project without comment or penalty, which would simply require that you disassociate your social media account from your learning record store account using a web form that provides this functionality.</p>
+
+                                <p>Your decision to participate or not participate will in no way impact upon your current or future relationship with QUT, UniSA, UTS, or UniSyd.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading" role="tab" id="headingTwo">
+                            <h4 class="panel-title">
+                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo"  aria-controls="collapseTwo">
+                                    Expected Benefits
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                            <div class="panel-body">
+                                <p>It is expected that this project will benefit you directly by providing you information on your learning that you can use for greater self-awareness about your learning. This may help you to achieve better grades, and long term learning outcomes throughout your studies. The project will generally benefit the higher education sector in understanding the experience of students using tools that describe engagement in learning activities using social media.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading" role="tab" id="headingThree">
+                            <h4 class="panel-title">
+                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree"  aria-controls="collapseThree">
+                                    Additional Participation
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                            <div class="panel-body">
+                                <p>We may also invite you to participate in:</p>
+
+                                <ol>
+                                    <li>A questionnaire (which will involve a separate informed consent process).</li>
+                                    <li>A focus group that will take approximately 40 minutes to find out how you used the information provided in your learning record store and its associated reports. The focus group will be conducted either face-to-face on campus, or via web conference. Questions will include:
+                                    </li>
+                                    <ul>
+                                        <li>What information did you find useful?</li>
+                                        <li>What information would you have liked to see?</li>
+                                        <li>How did the information that was reported to you affect your learning?</li>
+                                        <li>How did you change your behaviour in response to the information you saw?</li>
+                                    </ul>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading" role="tab" id="headingFour">
+                            <h4 class="panel-title">
+                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFour"  aria-controls="collapseFour">
+                                    Risks
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+                            <div class="panel-body">
+                                <p>There are no risks beyond normal day-to-day living associated with your participation in this project if you treat your class mates with respect and dignity while using the tools that this project provides. You may find yourself somewhat embarrassed if you do not do so, but we do not anticipate anything worse than that.</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingFive">
+                        <h4 class="panel-title">
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFive"  aria-controls="collapseFive">
+                                Privacy and Confidentiality
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseFive" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFive">
+                        <div class="panel-body">
+                            <p>All comments and responses will be treated confidentially unless required by law.</p>
+
+                            <p>The data in the learning record store will be seen by you, your teacher, the research team and technical staff. Other students will NOT be able to see your data.</p>
+
+                            <p>The focus group recordings will be transcribed and de-identified. The recordings will then be destroyed. The research team will have access to the transcriptions.</p>
+
+                            <p>The project is funded by the Commonwealth Office of Teaching and Learning who will own all materials and data it generates. Your data will be treated according to Australian data standards, which means that it will not be released into the public domain in an identifiable form, and that it will be stored in a secure store.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingSix">
+                        <h4 class="panel-title">
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSix"  aria-controls="collapseSix">
+                                Questions, Comments, Further Information/Technical Support
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseSix" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSix">
+                        <div class="panel-body">
+                            <p>If have any questions or require further information please contact one of the researchers listed below.</p>
+
+                            <p>Dr Kirsty Kitto	Project Leader	kirsty.kitto@qut.edu.au<br/>
+                            Dr Mandy Lupton	Project Team	mandy.lupton@qut.edu.au<br/>
+                            Zak Waters (Technical Support) zak.waters@qut.edu.au
+                            </p>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading" role="tab" id="headingSeven">
+                            <h4 class="panel-title">
+                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSeven"  aria-controls="collapseSeven">
+                                    Concerns/Complaints Regarding the Conduct of the Project
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseSeven" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSeven">
+                            <div class="panel-body">
+                                <p>QUT is committed to research integrity and the ethical conduct of research projects. However, if you do have any concerns or complaints about the ethical conduct of the project you may contact the QUT Research Ethics Unit on 07 3138 5123 or email ethicscontact@qut.edu.au. The QUT Research Ethics Unit is not connected with the research project and can facilitate a resolution to your concern in an impartial manner.</p>
+
+                                <p>Thank you for helping with this research project. Please keep this sheet for your information.</p>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading" role="tab" id="headingEight">
+                            <h4 class="panel-title">
+                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseEight"  aria-controls="collapseEight">
+                                    Research Team Contacts
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseEight" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingEight">
+                            <div class="panel-body">
+                                <p>
+                                    Dr Kirsty Kitto	Project Leader	kirsty.kitto@qut.edu.au<br/>
+                                    Dr Mandy Lupton	Project Team	mandy.lupton@qut.edu.au
+                                </p>
+
+                            </div>
+
+                        </div>
+                    </div>
+            </div>
+        </div>
+            <!-- end Project Info Sheet -->
+
+    </div>
+</div>
+
+        </div>
+    </div>
+</section>
+
+</body>
+
+<!-- General OAuth -->
+<!--{% static 'bower_components/bootstrap/dist/css/bootstrap.min.css'%}-->
+<script src="{% static 'bower_components/hello/dist/hello.all.js' %}"></script>
+<script>
+    //OAuth.initialize('1bc5e54c677bee8b6b3a');
+    hello.init({
+        github: '1bc5e54c677bee8b6b3a'
+    });
+</script>
+
+<!-- Trello -->
+<script src="https://api.trello.com/1/client.js?key=c908d424dda56c79d373f780a1ae26c7"></script>
+
+<!-- Google API -->
+<script src="https://apis.google.com/js/api.js"></script>
+
+<!-- Facebook API -->
+<script>
+    window.fbAsyncInit = function() {
+        FB.init({
+            appId      : '1537638456563538',
+            xfbml      : true,
+            version    : 'v2.8'
+        });
+        FB.AppEvents.logPageView();
+
+        //This function should be here,
+        FB.getLoginStatus(function(response) {
+            //console.log(response);
+        });
+
+    };
+
+    (function(d, s, id){
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {return;}
+        js = d.createElement(s); js.id = id;
+        js.src = "//connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+</script>
+
+
+
+<!-- Vue lib -->
+<script src="{% static 'bower_components/vue/dist/vue.js' %}"></script>
+<script src="{% static 'bower_components/vue-resource/dist/vue-resource.js' %}"></script>
+
+<!-- Apps -->
+<script src="{% static 'js/register_app.js' %}"></script>
+
+
+<!-- Smooth Scroll -->
+<!-- Smooth Scroll ---
+<script src="assets/js/smooth-scroll.js"></script>--
+<script src="assets/js/lightbox.min.js"></script>
+
+ All JS plugin Triggers --
+<script src="assets/js/main.js"></script>
+ Bootstrap JS --
+<script src="assets/js/bootstrap.js"></script>
+-->
+
+</html>

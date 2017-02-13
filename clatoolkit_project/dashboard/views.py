@@ -50,7 +50,7 @@ def get_trello_boards(request):
     key = os.environ.get('TRELLO_API_KEY')
     course_id = request.GET.get('course_id')
     trello_boardsList_url = 'https://api.trello.com/1/member/me/boards?key=%s&token=%s' % (key,token)
-    
+
     r = requests.get(trello_boardsList_url)
     #print "got response %s" % r.json()
     boardsList = r.json()
@@ -132,7 +132,7 @@ def trello_remove_board(request):
     unit = None
     try:
         # trello_user_course_map = UserTrelloCourseBoardMap.objects.filter(user=request.user, course_code=course_code)
-        trello_user_course_map = UserPlatformResourceMap.objects.filter(user=request.user, unit=course_id, 
+        trello_user_course_map = UserPlatformResourceMap.objects.filter(user=request.user, unit=course_id,
             platform=xapi_settings.PLATFORM_TRELLO)
         unit = UnitOffering.objects.get(id=course_id)
     except ObjectDoesNotExist:
@@ -146,10 +146,10 @@ def trello_remove_board(request):
         else:
             same_board_list.append(board)
 
-    # Multiple users are likely to use the same Trello board. 
+    # Multiple users are likely to use the same Trello board.
     # So, two or more same board IDs are likely to be found in unit.attached_trello_boards column.
     # Since we only want to delete the user's board ID, we remove one of the same board IDs from the column.
-    # 
+    #
     # attached_trello_boards column only has board IDs.
     # So, we cannot identify exactly which ID is the user's when multiple same IDs exist.
     for index in range(1, len(same_board_list)):
@@ -158,7 +158,7 @@ def trello_remove_board(request):
     unit.attached_trello_boards = ','.join(new_board_list)
 
     unit.save()
-    trello_user_course_map.delete()        
+    trello_user_course_map.delete()
     return myunits(request)
 
 @login_required
@@ -230,7 +230,6 @@ def myunits(request):
 
     return render_to_response('dashboard/myunits.html', context_dict, context)
 
-
 @login_required
 def dashboard(request):
     context = RequestContext(request)
@@ -264,18 +263,18 @@ def dashboard(request):
 
         context_dict = {
             'title': title, 'course_code':unit.code, 'platform':platform, 'show_dashboardnav':show_dashboardnav,
-            'activememberstable': activememberstable, 'unit': unit, 
+            'activememberstable': activememberstable, 'unit': unit,
             'topcontenttable': topcontenttable, 'show_allplatforms_widgets': show_allplatforms_widgets,
-            
-            'posts_timeline': timeline_data['posts'], 'shares_timeline': timeline_data['shares'], 
+
+            'posts_timeline': timeline_data['posts'], 'shares_timeline': timeline_data['shares'],
             'likes_timeline': timeline_data['likes'], 'comments_timeline': timeline_data['comments'],
 
-            'twitter_timeline': platform_timeline_data[xapi_settings.PLATFORM_TWITTER], 
-            'facebook_timeline': platform_timeline_data[xapi_settings.PLATFORM_FACEBOOK], 
-            'youtube_timeline': platform_timeline_data[xapi_settings.PLATFORM_YOUTUBE], 
-            'blog_timeline': platform_timeline_data[xapi_settings.PLATFORM_BLOG], 
-            'trello_timeline': platform_timeline_data[xapi_settings.PLATFORM_TRELLO], 
-            'github_timeline': platform_timeline_data[xapi_settings.PLATFORM_GITHUB], 
+            'twitter_timeline': platform_timeline_data[xapi_settings.PLATFORM_TWITTER],
+            'facebook_timeline': platform_timeline_data[xapi_settings.PLATFORM_FACEBOOK],
+            'youtube_timeline': platform_timeline_data[xapi_settings.PLATFORM_YOUTUBE],
+            'blog_timeline': platform_timeline_data[xapi_settings.PLATFORM_BLOG],
+            'trello_timeline': platform_timeline_data[xapi_settings.PLATFORM_TRELLO],
+            'github_timeline': platform_timeline_data[xapi_settings.PLATFORM_GITHUB],
             'forum_timeline': [], 'diigo_timeline':[],
 
             'activity_pie_series': activity_pie_series, 'platformactivity_pie_series': platformactivity_pie_series
@@ -320,10 +319,10 @@ def cadashboard(request):
 
         context_dict = {'show_dashboardnav': True, 'unit': unit, 'platform': platform, 'title': title,
 
-                        'posts_timeline': timeline_data['posts'], 'shares_timeline': timeline_data['shares'], 
+                        'posts_timeline': timeline_data['posts'], 'shares_timeline': timeline_data['shares'],
                         'likes_timeline': timeline_data['likes'], 'comments_timeline': timeline_data['comments'],
 
-                        'sentiments': sentiments, 'coi': coi, 'tags': tags, 
+                        'sentiments': sentiments, 'coi': coi, 'tags': tags,
                         'no_topics': no_topics, 'topic_model_output': topic_model_output,
                         'sentimenttopic_piebubblesdataset': sentimenttopic_piebubblesdataset}
 
@@ -348,7 +347,7 @@ def snadashboard(request):
         # Activity Time line data (verbs and platform)
         timeline_data = get_verb_timeline_data(unit, platform, None)
 
-        sna_json = sna_buildjson(platform, unit, 
+        sna_json = sna_buildjson(platform, unit,
             relationshipstoinclude = "'%s', '%s', '%s', '%s'" % (xapi_settings.VERB_MENTIONED, xapi_settings.VERB_LIKED, \
                                                                  xapi_settings.VERB_SHARED, xapi_settings.VERB_COMMENTED))
 
@@ -357,7 +356,7 @@ def snadashboard(request):
         context_dict = {'show_dashboardnav': True, 'unit': unit, 'platform': platform, 'title': title,
                         'sna_json': sna_json, 'centrality': centrality, 'course_id': unit.id,
 
-                        'posts_timeline': timeline_data['posts'], 'shares_timeline': timeline_data['shares'], 
+                        'posts_timeline': timeline_data['posts'], 'shares_timeline': timeline_data['shares'],
                         'likes_timeline': timeline_data['likes'], 'comments_timeline': timeline_data['comments']}
 
         return render_to_response('dashboard/snadashboard.html', context_dict, context)
@@ -441,16 +440,16 @@ def studentdashboard(request):
     # Get the number of verbs and platforms
     activity_pie_series = get_verb_pie_data(unit, platform = platform, user = user)
     platformactivity_pie_series = get_platform_pie_data(unit, user = user)
-    
+
     # #print "SNA", datetime.datetime.now()
     # if course_code == 'IFN614':
-    #     sna_json = sna_buildjson(platform, course_code, 
-    #             start_date='15-06-2016', end_date='20-12-2016', 
+    #     sna_json = sna_buildjson(platform, course_code,
+    #             start_date='15-06-2016', end_date='20-12-2016',
     #             relationshipstoinclude = "'%s', '%s', '%s', '%s'" % (xapi_settings.VERB_MENTIONED, xapi_settings.VERB_LIKED, \
     #                                                                  xapi_settings.VERB_SHARED, xapi_settings.VERB_COMMENTED))
     # else:
     #     # sna_json = sna_buildjson(platform, course_code, relationshipstoinclude="'mentioned','liked','shared','commented'")
-    sna_json = sna_buildjson(platform, unit, 
+    sna_json = sna_buildjson(platform, unit,
         relationshipstoinclude = "'%s', '%s', '%s', '%s'" % (xapi_settings.VERB_MENTIONED, xapi_settings.VERB_LIKED, \
                                                              xapi_settings.VERB_SHARED, xapi_settings.VERB_COMMENTED))
 
@@ -464,17 +463,17 @@ def studentdashboard(request):
     coi = getClassifiedCounts(platform, unit, user = user, classifier="nb_"+course_code+"_"+platform+".model")
 
     context_dict = {
-        'title': title, 'course_code':course_code, 'course_id': unit.id, 'platform':platform, 
+        'title': title, 'course_code':course_code, 'course_id': unit.id, 'platform':platform,
         'username':username, 'unit': unit, 'user_id': user.id,
-        'posts_timeline': timeline_data['posts'], 'shares_timeline': timeline_data['shares'], 
+        'posts_timeline': timeline_data['posts'], 'shares_timeline': timeline_data['shares'],
         'likes_timeline': timeline_data['likes'], 'comments_timeline': timeline_data['comments'],
 
-        'twitter_timeline': platform_timeline_data[xapi_settings.PLATFORM_TWITTER], 
-        'facebook_timeline': platform_timeline_data[xapi_settings.PLATFORM_FACEBOOK], 
-        'youtube_timeline': platform_timeline_data[xapi_settings.PLATFORM_YOUTUBE], 
-        'blog_timeline': platform_timeline_data[xapi_settings.PLATFORM_BLOG], 
-        'trello_timeline': platform_timeline_data[xapi_settings.PLATFORM_TRELLO], 
-        'github_timeline': platform_timeline_data[xapi_settings.PLATFORM_GITHUB], 
+        'twitter_timeline': platform_timeline_data[xapi_settings.PLATFORM_TWITTER],
+        'facebook_timeline': platform_timeline_data[xapi_settings.PLATFORM_FACEBOOK],
+        'youtube_timeline': platform_timeline_data[xapi_settings.PLATFORM_YOUTUBE],
+        'blog_timeline': platform_timeline_data[xapi_settings.PLATFORM_BLOG],
+        'trello_timeline': platform_timeline_data[xapi_settings.PLATFORM_TRELLO],
+        'github_timeline': platform_timeline_data[xapi_settings.PLATFORM_GITHUB],
         'forum_timeline': [], 'diigo_timeline':[], # These haven't been implemented
 
         'activity_pie_series': activity_pie_series,
@@ -484,6 +483,20 @@ def studentdashboard(request):
     }
 
     return render_to_response('dashboard/studentdashboard.html', context_dict, context)
+
+@login_required
+def cicaround_dashboard(request):
+    context = RequestContext(request)
+
+    unit_id = request.GET.get('unit')
+    unit = UnitOffering.objects.get(id=unit_id)
+
+    platforms = unit.get_required_platforms()
+
+    user = request.user
+
+    title = "CIC Around Dashboard: %s, %s" % (course_code, user.username)
+
 
 @check_access(required_roles=['Student'])
 @login_required
@@ -504,7 +517,7 @@ def mydashboard(request):
         rating = request.POST['rating']
         reflect = DashboardReflection(strategy = reflectiontext, rating = rating, user = user, unit = unit)
         reflect.save()
-        
+
     else:
         course_id = request.GET.get('course_id')
         platform = request.GET.get('platform')
@@ -536,16 +549,16 @@ def mydashboard(request):
     coi = getClassifiedCounts(platform, unit, user = user, classifier="nb_"+course_code+"_"+platform+".model")
     # Dashboard reflection
     reflections = DashboardReflection.objects.filter(user = user, unit = unit)
-    # SNA explorer data 
-    sna_json = sna_buildjson(platform, unit, 
+    # SNA explorer data
+    sna_json = sna_buildjson(platform, unit,
         # relationshipstoinclude="'mentioned','liked','shared','commented'")
         relationshipstoinclude = "'%s', '%s', '%s', '%s'" % (xapi_settings.VERB_MENTIONED, xapi_settings.VERB_LIKED, \
                                                              xapi_settings.VERB_SHARED, xapi_settings.VERB_COMMENTED))
-    
+
     # Centrality data
     centrality = get_centrality(sna_json)
 
-    # TODO: Fix get_timeseries() method 
+    # TODO: Fix get_timeseries() method
     # posts_timeline = get_timeseries('created', platform, course_code, username=username)
     # shares_timeline = get_timeseries('shared', platform, course_code, username=username)
     # likes_timeline = get_timeseries('liked', platform, course_code, username=username)
@@ -570,23 +583,23 @@ def mydashboard(request):
     #     diigo_timeline = get_timeseries_byplatform("Diigo", course_code, username)
     #     blog_timeline = get_timeseries_byplatform("Blog", course_code, username)
     #     show_allplatforms_widgets = True
-    
+
     context_dict = {
-        'title': title, 'course_code':course_code, 'course_id': unit.id, 'platform':platform, 
+        'title': title, 'course_code':course_code, 'course_id': unit.id, 'platform':platform,
         'username': user.username, 'unit': unit, 'user_id': user.id,
-        'posts_timeline': timeline_data['posts'], 'shares_timeline': timeline_data['shares'], 
+        'posts_timeline': timeline_data['posts'], 'shares_timeline': timeline_data['shares'],
         'likes_timeline': timeline_data['likes'], 'comments_timeline': timeline_data['comments'],
 
-        'twitter_timeline': platform_timeline_data[xapi_settings.PLATFORM_TWITTER], 
-        'facebook_timeline': platform_timeline_data[xapi_settings.PLATFORM_FACEBOOK], 
-        'youtube_timeline': platform_timeline_data[xapi_settings.PLATFORM_YOUTUBE], 
-        'blog_timeline': platform_timeline_data[xapi_settings.PLATFORM_BLOG], 
-        'trello_timeline': platform_timeline_data[xapi_settings.PLATFORM_TRELLO], 
-        'github_timeline': platform_timeline_data[xapi_settings.PLATFORM_GITHUB], 
+        'twitter_timeline': platform_timeline_data[xapi_settings.PLATFORM_TWITTER],
+        'facebook_timeline': platform_timeline_data[xapi_settings.PLATFORM_FACEBOOK],
+        'youtube_timeline': platform_timeline_data[xapi_settings.PLATFORM_YOUTUBE],
+        'blog_timeline': platform_timeline_data[xapi_settings.PLATFORM_BLOG],
+        'trello_timeline': platform_timeline_data[xapi_settings.PLATFORM_TRELLO],
+        'github_timeline': platform_timeline_data[xapi_settings.PLATFORM_GITHUB],
         'forum_timeline': [], 'diigo_timeline':[], # These haven't been implemented
 
         'activity_pie_series': activity_pie_series,
-        'platformactivity_pie_series':platformactivity_pie_series, 
+        'platformactivity_pie_series':platformactivity_pie_series,
         'show_allplatforms_widgets': show_allplatforms_widgets, 'show_dashboardnav': True,
         'sna_json': sna_json, 'tags': tags, 'centrality': centrality,
         'sentiments': sentiments, 'coi': coi, 'reflections':reflections
@@ -640,7 +653,7 @@ def ccadashboard(request):
 
     title = "CCA Dashboard: %s (Platform: %s)" % (unit.code, platform)
     context_dict = {'course_id':course_id, 'platform':platform, 'title': title, }
-    
+
     return render_to_response('dashboard/ccadashboard.html', context_dict, context)
 
 
@@ -660,7 +673,7 @@ def get_platform_activities(request):
     # context = RequestContext(request)
     # platform_names = []
     platform_names = request.GET.get('platform').split(',')
-    
+
     val = get_platform_activity_dataset(request.GET.get('course_id'), platform_names)
     response = JsonResponse(val, status=status.HTTP_200_OK)
     return response
@@ -714,14 +727,14 @@ def add_repo_to_course(request):
 def get_github_attached_repo(request):
     course_id = request.GET.get('course_id')
     if course_id is None or course_id == '':
-        return JsonResponse({'result': 'error', 'message': 'Course ID not found.', 
+        return JsonResponse({'result': 'error', 'message': 'Course ID not found.',
             'course_id': course_id}, status=status.HTTP_200_OK)
 
     resource_map = UserPlatformResourceMap.objects.filter(
         user=request.user, unit=course_id, platform=xapi_settings.PLATFORM_GITHUB)
 
     if len(resource_map) == 0:
-        return JsonResponse({'result': 'error', 'message': 'No records found.', 
+        return JsonResponse({'result': 'error', 'message': 'No records found.',
             'course_id': course_id}, status=status.HTTP_200_OK)
 
     resource = resource_map[0]
@@ -757,7 +770,7 @@ def get_github_contribution(request):
     # Get all issues and issues that each user was assigned to.
     course_id = request.GET.get('course_id')
     contribution = get_issue_list(course_id)
-    
+
     return JsonResponse(contribution, status=status.HTTP_200_OK)
 
 
@@ -797,7 +810,7 @@ def get_learning_records(request):
 
     if end_date and end_date != '':
         filters.until = end_date
-        
+
     getter = xapi_getter()
     statements = getter.get_xapi_statements(unit.id, user_id, filters)
     lang = 'en-US'

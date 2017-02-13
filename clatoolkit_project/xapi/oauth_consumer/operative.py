@@ -174,17 +174,18 @@ class LRS_Auth(object):
         tmp_reqToken.save()
 
         # 2nd leg: Redirect to lrs to allow user to confirm access token permissions
-        return self.lrs_2ndstep_redirect(request_token['oauth_token'], self.CALLBACK_URL, self.CONSUMER_KEY)
+        return self.lrs_2ndstep_redirect(request_token['oauth_token'], self.CALLBACK_URL, self.CONSUMER_KEY, user_id)
 
-    def lrs_2ndstep_redirect(self, token, callback, consumer_key):
+    def lrs_2ndstep_redirect(self, token, callback, consumer_key, user):
         oauth_token_param = '?oauth_token=%s' % token
         oauth_callback_param = '&oauth_callback=%s' % callback
         consumer_key = '&consumer_key=%s' % consumer_key
+        user = '&clau=%s' % user
 
         # print 'authorization url: ' + self.AUTHORIZATION_URL + oauth_token_param + oauth_callback_param + consumer_key
 
         #3rd leg found in views.py
-        return self.AUTHORIZATION_URL + oauth_token_param + oauth_callback_param + consumer_key
+        return self.AUTHORIZATION_URL + oauth_token_param + oauth_callback_param + consumer_key + user
 
 
 
