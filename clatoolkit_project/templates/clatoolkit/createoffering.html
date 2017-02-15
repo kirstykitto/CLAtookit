@@ -30,6 +30,7 @@
                     {% for field in form %}
                         <div class="form-group">
                             {{ field.label_tag }}
+                            <br>
                             {% if field|field_type == "Textarea" %}
                                 <textarea class="form-control" name="{{ field.name }}">{% if field.value %}{{ field.value }}{% endif %}</textarea>
                             {% else %}
@@ -45,9 +46,6 @@
                                     <input type="hidden" id="endDate" value="{{field.value}}">
                                     <input class="form-control" id="id_end_date" name="end_date" type="text" value="{% if field.value %}{{ field.value }}{% endif %}">
                                 {% else %}
-                                    {% if field.name != "co_analysis" and field.name != "sn_analysis" and field.name != "enable_coi_classifier" %}
-                                        <br>
-                                    {% endif %}
                                     {{ field }}
                                 {% endif %}
                             {% endif %}
