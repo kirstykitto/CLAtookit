@@ -60,6 +60,8 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # During development only
+API_SECRET=os.environ.get('API_SECRET')
+API_URL=os.enivron.get('API_URL')
 
 # Application definition
 

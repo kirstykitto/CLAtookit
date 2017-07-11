@@ -31,6 +31,23 @@ from xapi.statement.xapi_getter import xapi_getter
 from xapi.statement.xapi_filter import xapi_filter
 from xapi.oauth_consumer.operative import LRS_Auth
 
+def get_user_truncated_xapi(user, platforms=None, course_id=None):
+    user_lrs = LearningRecord.objects.filter(user_id=user)
+    if platforms:
+        platforms = [platform.capitalize() for platform in platforms]
+        user_lrs = user_lrs.filter(platform__in=platforms)
+    if course_id:
+        user_lrs = user_lrs.filter(unit_id=course_id)
+    data = []
+    for lr in user_lrs:
+        trunc_xapi = {}
+        trunc_xapi['verb'] = lr.verb
+        trunc_xapi['object'] = lr.platformid
+        trunc_xapi['date'] = lr.datetimestamp
+        trunc_xapi['platform'] = lr.platform
+        data.append(trunc_xapi)
+
+    return data
 
 
 def getPluginKey(platform):

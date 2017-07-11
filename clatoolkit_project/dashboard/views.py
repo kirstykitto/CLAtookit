@@ -24,6 +24,37 @@ from xapi.statement.xapi_settings import xapi_settings
 from xapi.statement.xapi_filter import xapi_filter
 from xapi.statement.xapi_getter import xapi_getter
 
+# custom jwt auth for api endpoints (currently only for one consumer, have models/form in place to extend to sign-ups)
+def jwt_auth(fn):
+    """
+    Decorator to authorize an api endpoint against specific user in the toolkit
+    using a jwt. For now, this is implemented as a single consumer (i.e. only
+    one consumer can be specified atm in settings.py (API_SECRET/API_URL). This can
+    be extended upon to allow arbitrary/niche
+    access and imports of data into the toolkit.
+
+    Receives the jwt from the HTTP_AUTHORIZATION header, decodes using shared secret
+    (settings.API_SECRET) and verifies the HTTP_REFERER against the consumers web location
+    (settings.API_URL). If all criteria is passed, the decorator logs in (fills request.user) the user and returns
+    the appropriate data as defined by the view.
+
+    :return: View with user added to request.user
+    """
+    def _wrapped_fn(request, *args, **kwargs):
+        try:
+            token = request.META['HTTP_API_AUTH']
+        except:
+            raise Exception(request.META)
+        ver_jwt = jwt.decode(token, settings.API_SECRET)
+        if request.META.get('HTTP_REFERER', '') == settings.API_URL:
+            user = User.objects.get(email=ver_jwt['user'])
+            if user is not None:
+                user.backend = 'django.contrib.auth.backends.ModelBackend'
+                login(request, user)
+                return fn(request, *args, **kwargs)
+            else:
+                return PermissionDenied
+    return _wrapped_fn
 
 
 #API endpoint to grab a list of trello boards to attach to course
@@ -642,12 +673,16 @@ def get_platform_activities(request):
     return response
 
 
+@jwt_auth
 def get_user_acitivities(request):
-    platform_names = request.GET.get('platform').split(',')
-    val = get_user_acitivities_dataset(request.GET.get('course_code'), platform_names)
-    response = JsonResponse(val, status=status.HTTP_200_OK)
+    platforms = request.GET.get('platform', None)
+    course_id = request.GET.get('course_id', None)
+    if platforms:
+        platforms = platforms.split(',')
+    # val = get_user_acitivities_dataset(request.GET.get('course_code'), platform_names)
+    val = get_user_truncated_xapi(request.user, platforms=platforms, course_id=course_id)
+    response = JsonResponse(dict(user_activities=list(val)), status=status.HTTP_200_OK)
     return response
-
 
 @login_required
 def get_all_repos(request):
