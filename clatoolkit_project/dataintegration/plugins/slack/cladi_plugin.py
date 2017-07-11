@@ -36,8 +36,9 @@ class SlackPlugin(DIBasePlugin, DIPluginDashboardMixin):
     platform_url = "https://slack.com/"
 
     xapi_verbs = [xapi_settings.VERB_CREATED, xapi_settings.VERB_COMMENTED, xapi_settings.VERB_SHARED, 
-                  xapi_settings.VERB_MENTIONED, xapi_settings.VERB_LIKED, xapi_settings.VERB_REMOVED]
-    xapi_objects = [xapi_settings.OBJECT_NOTE, xapi_settings.OBJECT_FILE, ]
+                  xapi_settings.VERB_MENTIONED, xapi_settings.VERB_BOOKMARKED, xapi_settings.VERB_REMOVED,
+                  xapi_settings.VERB_ATTACHED]
+    xapi_objects = [xapi_settings.OBJECT_NOTE, xapi_settings.OBJECT_FILE, xapi_settings.VERB_COMMENTED]
 
     user_api_association_name = 'Slack Username' # eg the username for a signed up user that will appear in data extracted via a social API
     unit_api_association_name = 'Slack Team' # eg Slack team
@@ -76,8 +77,8 @@ class SlackPlugin(DIBasePlugin, DIPluginDashboardMixin):
                                                         xapi_settings.OBJECT_FILE,
                                                         xapi_settings.VERB_COMMENTED]
     xapi_verbs_to_includein_verbactivitywidget = [xapi_settings.VERB_CREATED, xapi_settings.VERB_COMMENTED, 
-                                                  xapi_settings.VERB_SHARED, xapi_settings.VERB_MENTIONED, 
-                                                  xapi_settings.VERB_LIKED, xapi_settings.VERB_REMOVED]
+                    xapi_settings.VERB_SHARED, xapi_settings.VERB_MENTIONED, xapi_settings.VERB_BOOKMARKED, 
+                    xapi_settings.VERB_REMOVED, xapi_settings.VERB_ATTACHED]
 
 
     def __init__(self):

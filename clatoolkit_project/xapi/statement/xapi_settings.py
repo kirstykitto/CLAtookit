@@ -91,3 +91,23 @@ class xapi_settings(object):
             if iri == verb_iri:
                 return verb
 
+    @classmethod
+    def get_platform_list(self):
+        p_list = [
+            self.PLATFORM_TWITTER,
+            self.PLATFORM_FACEBOOK,
+            self.PLATFORM_YOUTUBE,
+            self.PLATFORM_FORUM,
+            self.PLATFORM_DIIGO,
+            self.PLATFORM_BLOG,
+            self.PLATFORM_GITHUB,
+            self.PLATFORM_TRELLO,
+            self.PLATFORM_SLACK
+        ]
+        return sorted(p_list)
+
+
+    @classmethod
+    def get_verb_list(self):
+        
+        return sorted(self.VERB_IRI_MAPPER.keys())

@@ -74,8 +74,8 @@ INSTALLED_APPS = (
     'clatoolkit',
     'dataintegration',
     'dashboard',
-    #'common',
-    'xapi'
+    'xapi',
+    'api',
 )
 
 MIDDLEWARE_CLASSES = (

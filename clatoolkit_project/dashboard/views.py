@@ -258,11 +258,6 @@ def dashboard(request):
         activity_pie_series = get_verb_pie_data(unit, platform = platform)
         platformactivity_pie_series = get_platform_pie_data(unit)
 
-        # Activity Time line data (verbs and platform)
-        timeline_data = get_verb_timeline_data(unit, platform, None)
-        platform_timeline_data = get_platform_timeline_data(unit, platform, None)
-
-        # p = platform if platform != "all" else None
         activememberstable = get_active_members_table(unit, platform)
         topcontenttable = get_cached_top_content(platform, unit)
 
@@ -270,18 +265,6 @@ def dashboard(request):
             'title': title, 'course_code':unit.code, 'platform':platform, 'show_dashboardnav':show_dashboardnav,
             'activememberstable': activememberstable, 'unit': unit,
             'topcontenttable': topcontenttable, 'show_allplatforms_widgets': show_allplatforms_widgets,
-
-            'posts_timeline': timeline_data['posts'], 'shares_timeline': timeline_data['shares'],
-            'likes_timeline': timeline_data['likes'], 'comments_timeline': timeline_data['comments'],
-
-            'twitter_timeline': platform_timeline_data[xapi_settings.PLATFORM_TWITTER],
-            'facebook_timeline': platform_timeline_data[xapi_settings.PLATFORM_FACEBOOK],
-            'youtube_timeline': platform_timeline_data[xapi_settings.PLATFORM_YOUTUBE],
-            'blog_timeline': platform_timeline_data[xapi_settings.PLATFORM_BLOG],
-            'trello_timeline': platform_timeline_data[xapi_settings.PLATFORM_TRELLO],
-            'github_timeline': platform_timeline_data[xapi_settings.PLATFORM_GITHUB],
-            'slack_timeline': platform_timeline_data[xapi_settings.PLATFORM_SLACK],
-            'forum_timeline': [], 'diigo_timeline':[],
 
             'activity_pie_series': activity_pie_series, 'platformactivity_pie_series': platformactivity_pie_series
             }
